@@ -1,0 +1,17 @@
+#:schema node_modules/wrangler/config-schema.json
+
+name = "legal-ocr-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Use the latest compatibility flags
+compatibility_flags = ["nodejs_compat"]
+
+# Development settings
+[dev]
+port = 8787
+local_protocol = "http"
+
+# Optional: Add rate limiting for production
+# [limits]
+# cpu_ms = 30000
