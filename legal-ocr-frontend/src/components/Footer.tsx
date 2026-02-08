@@ -59,16 +59,7 @@ export function Footer() {
                     </div>
 
                     <p className="text-center text-sm text-gray-400">
-                        基于{" "}
-                        <a
-                            href="https://mistral.ai"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-gray-500 hover:text-gray-700 font-medium"
-                        >
-                            Mistral AI
-                        </a>{" "}
-                        文档智能技术 | Created by Zane v1.0.2
+                        Copyright (c) 2026 <span className="font-bold text-gray-600">Zane</span> v2.0.0
                     </p>
                 </div>
             </div>
