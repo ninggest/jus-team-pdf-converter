@@ -7,22 +7,18 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 ## 🌟 Core Features
 
 - **Legal Document Optimization**: Deeply optimized for legal agreements, judgments, and other documents. Automatically identifies and cleans headers, footers, and page numbers to maintain body text continuity.
-- **Async Processing Mode**: Supports backend processing via Mistral Batch API, offering a 50% cost reduction for high-volume tasks.
-- **Privacy-First Design**: 
-  - **Local API Keys**: Your Mistral AI API key is stored locally in your browser (localStorage) and is never uploaded to any intermediate server.
-  - **Direct Communication**: Keys are only sent to the Cloudflare Worker and submitted directly to Mistral AI.
-  - **Access Codes**: Personal access codes for persistent session retrieval across devices.
-- **Modern UI/UX**: High-end, modern design built with React and Tailwind CSS v4, now fully localized in Chinese.
+- **Async Processing (v2.0)**: Background OCR processing with task persistence. Features an **Access Code** system to retrieve jobs across sessions/devices.
 - **High-Quality OCR**: Utilizes professional-grade OCR technology from Mistral AI to accurately extract complex structures such as tables and hierarchical headings.
+- **User-Centric Design**: Full localization, detailed mode explanations, and optimized data flow visibility.
 
 ## 📍 Version History
 
 ### v2.0.0 (Current)
-- **Async Processing Mode**: Introduced "Async Mode" (formerly Batch Mode) using Mistral's Batch API for asynchronous processing.
-- **50% Cost Savings**: Leverages bulk processing prices to reduce API costs by half.
-- **Session Persistence**: Implemented Access Codes to allow users to retrieve tasks from different devices or sessions.
-- **Full Localization**: Complete UI overhaul with professional Chinese translations and optimized layout.
-- **Bug Fixes**: Resolved 422/402 API communication issues and fixed task processing visibility.
+- **Async Processing & Access Code**: Introduced a persistent job system. Users get a 6-character "Access Code" to retrieve their background tasks later or from different devices.
+- **UI Localization**: Full Chinese localization for the entire interface.
+- **Mode Optimization**: Renamed modes to "Normal Mode" and "Async Mode" with detailed functional explanations.
+- **Data Policy Visibility**: Moved data privacy notice to the footer and aligned UI elements for a cleaner look.
+- **Bug Fixes**: Resolved Mistral 422 upload error and improved task status tracking.
 
 ### v1.2.0
 - **High-Performance Upload**: Completely refactored the file processing engine from Base64 encoding to **Signed URL Mode**.
