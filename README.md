@@ -88,4 +88,8 @@ npm run dev
 
 ## 📄 许可证
 
-MIT License
+## 📄 许可证 (License)
+
+本项目采用 **MIT License**。
+
+版权所有 (c) 2026 **Zane**。有关详细信息，请参阅 [LICENSE.md](./LICENSE.md) 文件。
