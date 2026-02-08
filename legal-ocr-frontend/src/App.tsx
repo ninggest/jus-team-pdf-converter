@@ -111,7 +111,7 @@ function App() {
   const canConvert = hasQueuedFiles && apiKey.length > 0 && !isProcessing;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
+    <div className="min-h-screen bg-white flex flex-col items-center">
       <Header />
 
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-8">
