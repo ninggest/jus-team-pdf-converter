@@ -96,16 +96,28 @@ export function ApiKeyInput({ onKeyChange }: ApiKeyInputProps) {
                     )}
                 </div>
 
+
                 {/* Privacy Warning */}
-                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-md">
-                    <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <p className="text-xs text-amber-800 leading-relaxed">
-                        <strong>Privacy Notice:</strong> Your API Key is stored locally in
-                        your browser's localStorage and is{" "}
-                        <span className="font-semibold">never sent to our servers</span>. It
-                        is only transmitted directly to Mistral's API for processing your
-                        documents.
-                    </p>
+                <div className="flex flex-col gap-3 p-4 bg-amber-50 border border-amber-200 rounded-md text-sm text-amber-900">
+                    <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <h4 className="font-semibold text-amber-800">Data Privacy & Security Notice</h4>
+                    </div>
+
+                    <div className="pl-7 space-y-3 text-xs leading-relaxed text-amber-800/90">
+                        <p>
+                            <strong className="text-amber-900">1. Data Flow Transparency:</strong> Your API Key is stored <strong>only</strong> in your browser's local storage.
+                            When converting, your PDF files are transmitted directly to Mistral AI's API.
+                            <span className="font-semibold"> We do not store your files, content, or API keys on our own servers.</span>
+                        </p>
+                        <p>
+                            <strong className="text-amber-900">2. Server Location:</strong> Your PDF files will be uploaded
+                            to Mistral AI's servers for processing. Mistral AI is a remote company based in France, and their servers are primarily located in the <strong>European Union</strong>.
+                        </p>
+                        <p className="italic font-medium border-t border-amber-200/50 pt-2 mt-1">
+                            ⚠️ If you have strict data residency requirements (e.g., data cannot leave your country) or concerns about sharing data with Mistral AI, please evaluate carefully before use.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Status indicator */}
