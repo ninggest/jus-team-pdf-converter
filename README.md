@@ -1,6 +1,6 @@
 # Jus Team PDF Converter
 
-Jus Team 效率提升计划的一部分。这是一个专为法律文档设计的 PDF 转 Markdown 工具，旨在将复杂的法律文本转换为清晰、易读且结构化的 Markdown 格式。
+这是一个专为法律文档设计的 PDF 转 Markdown 工具，旨在将复杂的法律文本转换为清晰、易读且结构化的 Markdown 格式。
 
 ## 🌟 核心功能
 
