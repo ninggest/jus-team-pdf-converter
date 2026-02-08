@@ -18,7 +18,8 @@ import {
 import type { FileItem } from "./lib/batchProcessor";
 
 // Backend Worker URL - Update this to your deployed Worker URL
-const WORKER_URL = "http://localhost:8787";
+// Backend Worker URL - Uses environment variable VITE_WORKER_URL
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || "http://localhost:8787";
 
 function App() {
   const [apiKey, setApiKey] = useState("");
@@ -196,7 +197,7 @@ function App() {
         {fileQueue.length === 0 && (
           <Card className="border-dashed">
             <CardContent className="py-12">
-              <div className="text-center text-gray-500">
+              <div className="flex flex-col items-center justify-center text-center text-gray-500">
                 <Download className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-lg font-medium text-gray-700 mb-2">
                   Ready to Convert
