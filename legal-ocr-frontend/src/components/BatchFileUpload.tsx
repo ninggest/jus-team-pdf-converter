@@ -40,12 +40,12 @@ export function BatchFileUpload({
             );
 
             if (pdfFiles.length === 0) {
-                alert("Please upload PDF files only.");
+                alert("请上传 PDF 文件。");
                 return;
             }
 
             if (pdfFiles.length < files.length) {
-                alert(`${files.length - pdfFiles.length} non-PDF files were ignored.`);
+                alert(`已忽略 ${files.length - pdfFiles.length} 个非 PDF 文件。`);
             }
 
             onFilesSelect(pdfFiles);
@@ -65,7 +65,7 @@ export function BatchFileUpload({
                 if (pdfFiles.length > 0) {
                     onFilesSelect(pdfFiles);
                 } else {
-                    alert("Please upload PDF files only.");
+                    alert("请上传 PDF 文件。");
                 }
             }
             // Reset input so same files can be selected again
@@ -109,11 +109,11 @@ export function BatchFileUpload({
                 <div>
                     <p className="font-medium text-gray-700">
                         {isProcessing
-                            ? "Processing files..."
-                            : "Drop PDF files here, or click to browse"}
+                            ? "正在处理文件..."
+                            : "拖放 PDF 文件到这里，或点击选择文件"}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                        Supports multiple PDF files up to 50MB each
+                        支持多个 PDF 文件，每个最大 50MB
                     </p>
                 </div>
             </div>

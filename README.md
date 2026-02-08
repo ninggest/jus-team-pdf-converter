@@ -7,16 +7,24 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 ## 🌟 Core Features
 
 - **Legal Document Optimization**: Deeply optimized for legal agreements, judgments, and other documents. Automatically identifies and cleans headers, footers, and page numbers to maintain body text continuity.
-- **Batch Processing**: Supports uploading multiple PDF files at once, processing them in parallel with real-time status tracking.
+- **Async Processing Mode**: Supports backend processing via Mistral Batch API, offering a 50% cost reduction for high-volume tasks.
 - **Privacy-First Design**: 
   - **Local API Keys**: Your Mistral AI API key is stored locally in your browser (localStorage) and is never uploaded to any intermediate server.
   - **Direct Communication**: Keys are only sent to the Cloudflare Worker and submitted directly to Mistral AI.
-- **Modern UI/UX**: High-end, modern design built with React and Tailwind CSS v4, supporting drag-and-drop uploads.
+  - **Access Codes**: Personal access codes for persistent session retrieval across devices.
+- **Modern UI/UX**: High-end, modern design built with React and Tailwind CSS v4, now fully localized in Chinese.
 - **High-Quality OCR**: Utilizes professional-grade OCR technology from Mistral AI to accurately extract complex structures such as tables and hierarchical headings.
 
 ## 📍 Version History
 
-### v1.2.0 (Current)
+### v2.0.0 (Current)
+- **Async Processing Mode**: Introduced "Async Mode" (formerly Batch Mode) using Mistral's Batch API for asynchronous processing.
+- **50% Cost Savings**: Leverages bulk processing prices to reduce API costs by half.
+- **Session Persistence**: Implemented Access Codes to allow users to retrieve tasks from different devices or sessions.
+- **Full Localization**: Complete UI overhaul with professional Chinese translations and optimized layout.
+- **Bug Fixes**: Resolved 422/402 API communication issues and fixed task processing visibility.
+
+### v1.2.0
 - **High-Performance Upload**: Completely refactored the file processing engine from Base64 encoding to **Signed URL Mode**.
 - **Large File Support**: Significantly improved stability and speed when processing large files, matching the Mistral 50MB API limit.
 - **Memory Optimization**: Reduced Cloudflare Worker memory usage by over 90%.
