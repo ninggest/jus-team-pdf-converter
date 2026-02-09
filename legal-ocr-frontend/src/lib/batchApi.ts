@@ -35,24 +35,65 @@ export interface BatchListResponse {
 /**
  * Create a new batch OCR job
  */
+/**
+ * Helper to upload file to Mistral (Duplicated to avoid circular dependency or extract later)
+ */
+async function uploadToMistral(file: File, apiKey: string): Promise<string> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("purpose", "ocr");
+
+    const response = await fetch("https://api.mistral.ai/v1/files", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+        },
+        body: formData,
+    });
+
+    if (!response.ok) {
+        throw new Error(`Mistral Upload Failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.id;
+}
+
+/**
+ * Create a new batch OCR job
+ * Uses Direct Upload:
+ * 1. Uploads files to Mistral client-side
+ * 2. Sends IDs to Worker to start batch
+ */
 export async function createBatchJob(
     files: File[],
     apiKey: string,
     workerUrl: string,
     accessCode: string
 ): Promise<BatchJob> {
-    const formData = new FormData();
-    files.forEach((file) => {
-        formData.append("files[]", file);
-    });
 
+    // 1. Upload all files to Mistral in parallel
+    const uploadedFiles = await Promise.all(
+        files.map(async (file) => {
+            try {
+                const id = await uploadToMistral(file, apiKey);
+                return { name: file.name, mistral_file_id: id };
+            } catch (error) {
+                console.error(`Failed to upload ${file.name}:`, error);
+                throw new Error(`Failed to upload ${file.name} to Mistral`);
+            }
+        })
+    );
+
+    // 2. Create Batch Job on Worker with File IDs
     const response = await fetch(`${workerUrl}/batch/create`, {
         method: "POST",
         headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
             "X-Access-Code": accessCode,
         },
-        body: formData,
+        body: JSON.stringify({ files: uploadedFiles }),
     });
 
     if (!response.ok) {

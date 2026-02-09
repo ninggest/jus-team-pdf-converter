@@ -567,37 +567,88 @@ async function handleOCRRequest(request: Request): Promise<Response> {
         );
     }
 
-    const pdfData = await extractPdfFromRequest(request);
-    if (!pdfData) {
-        return jsonError(
-            "No valid PDF file found in request. Send as multipart/form-data with 'file' field or as binary with Content-Type: application/pdf",
-            400
-        );
-    }
-
-    const MAX_FILE_SIZE = 50 * 1024 * 1024;
-    if (pdfData.data.byteLength > MAX_FILE_SIZE) {
-        return jsonError(
-            `File too large. Maximum size is 50MB. Your file: ${(pdfData.data.byteLength / 1024 / 1024).toFixed(2)}MB`,
-            413
-        );
-    }
-
+    const contentType = request.headers.get("Content-Type") || "";
     let ocrResponse: MistralOCRResponse;
-    try {
-        ocrResponse = await callMistralOCR(pdfData.data, pdfData.filename, apiKey);
-    } catch (error) {
-        const errorMessage =
-            error instanceof Error ? error.message : "Unknown error occurred";
 
-        if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
-            return jsonError(`Invalid API Key: ${errorMessage}`, 401);
+    // Mode 1: Process by Mistral File ID (Direct Upload from Client)
+    if (contentType.includes("application/json")) {
+        try {
+            const body = await request.json() as { mistral_file_id?: string };
+            if (!body.mistral_file_id) {
+                return jsonError("Missing mistral_file_id in JSON body", 400);
+            }
+
+            const signedUrl = await getSignedUrl(body.mistral_file_id, apiKey);
+
+            const requestBody = {
+                model: MISTRAL_OCR_MODEL,
+                document: {
+                    type: "document_url",
+                    document_url: signedUrl,
+                },
+                extract_header: true,
+                extract_footer: true,
+                include_image_base64: false,
+            };
+
+            const response = await fetch(MISTRAL_OCR_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Mistral OCR API error: ${response.status} ${errorText}`);
+            }
+
+            ocrResponse = (await response.json()) as MistralOCRResponse;
+
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Unknown error";
+            return jsonError(`OCR processing failed: ${errorMessage}`, 500);
         }
-        if (errorMessage.includes("429") || errorMessage.includes("rate limit")) {
-            return jsonError(`Rate limit exceeded: ${errorMessage}`, 429);
+    }
+    // Mode 2: Upload and Process (Legacy / Fallback)
+    else {
+        const pdfData = await extractPdfFromRequest(request);
+        if (!pdfData) {
+            return jsonError(
+                "No valid PDF file found in request. Send JSON with { mistral_file_id } OR multipart/form-data with 'file'",
+                400
+            );
         }
 
-        return jsonError(`OCR processing failed: ${errorMessage}`, 500);
+        // Pre-check Content-Length to avoid OOM
+        const contentLength = request.headers.get("Content-Length");
+        const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+        if (contentLength && parseInt(contentLength) > MAX_FILE_SIZE) {
+            const sizeMb = (parseInt(contentLength) / 1024 / 1024).toFixed(2);
+            return jsonError(
+                `File too large. Maximum size is 50MB. Your upload: ${sizeMb}MB`,
+                413
+            );
+        }
+
+        try {
+            ocrResponse = await callMistralOCR(pdfData.data, pdfData.filename, apiKey);
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Unknown error occurred";
+
+            if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
+                return jsonError(`Invalid API Key: ${errorMessage}`, 401);
+            }
+            if (errorMessage.includes("429") || errorMessage.includes("rate limit")) {
+                return jsonError(`Rate limit exceeded: ${errorMessage}`, 429);
+            }
+
+            return jsonError(`OCR processing failed: ${errorMessage}`, 500);
+        }
     }
 
     const markdown = processOCRToMarkdown(ocrResponse);
@@ -623,9 +674,50 @@ async function handleBatchCreate(
         return jsonError("Missing Authorization header", 401, setCookie);
     }
 
-    const files = await extractMultiplePdfsFromRequest(request);
-    if (files.length === 0) {
-        return jsonError("No PDF files found in request", 400, setCookie);
+    let uploadedFiles: { name: string; mistral_file_id: string }[] = [];
+    const contentType = request.headers.get("Content-Type") || "";
+
+    // Mode 1: Direct File IDs (JSON)
+    if (contentType.includes("application/json")) {
+        try {
+            const body = await request.json() as { files: { name: string; mistral_file_id: string }[] };
+            if (body.files && Array.isArray(body.files)) {
+                uploadedFiles = body.files;
+            }
+        } catch {
+            // Ignore JSON parse errors, fall back to multipart
+        }
+    }
+
+    // Mode 2: Legacy Multipart Upload (if Mode 1 didn't provide files)
+    if (uploadedFiles.length === 0) {
+        // Pre-check Content-Length
+        const contentLength = request.headers.get("Content-Length");
+        const MAX_BATCH_SIZE = 50 * 1024 * 1024; // 50MB total limit
+
+        if (contentLength && parseInt(contentLength) > MAX_BATCH_SIZE) {
+            const sizeMb = (parseInt(contentLength) / 1024 / 1024).toFixed(2);
+            return jsonError(
+                `Total batch size too large. Maximum is 50MB. Your upload: ${sizeMb}MB`,
+                413,
+                setCookie
+            );
+        }
+
+        const rawFiles = await extractMultiplePdfsFromRequest(request);
+        if (rawFiles.length === 0) {
+            return jsonError("No PDF files found in request", 400, setCookie);
+        }
+
+        // Upload files to Mistral now
+        for (const file of rawFiles) {
+            try {
+                const fileId = await uploadFileToMistral(file.data, file.filename, apiKey, "ocr");
+                uploadedFiles.push({ name: file.filename, mistral_file_id: fileId });
+            } catch (error) {
+                return jsonError(`Failed to upload file ${file.filename} to Mistral`, 500, setCookie);
+            }
+        }
     }
 
     // Create batch job record
@@ -636,8 +728,8 @@ async function handleBatchCreate(
         id: jobId,
         user_id: userId,
         mistral_batch_id: "",
-        status: "uploading",
-        files: [],
+        status: "processing", // Files are already on Mistral
+        files: uploadedFiles,
         created_at: now,
         updated_at: now,
     };
@@ -650,17 +742,6 @@ async function handleBatchCreate(
     );
 
     try {
-        // Upload all files to Mistral
-        const uploadedFiles: { name: string; mistral_file_id: string }[] = [];
-        for (const file of files) {
-            const fileId = await uploadFileToMistral(file.data, file.filename, apiKey, "ocr");
-            uploadedFiles.push({ name: file.filename, mistral_file_id: fileId });
-        }
-
-        jobRecord.files = uploadedFiles;
-        jobRecord.status = "processing";
-        jobRecord.updated_at = new Date().toISOString();
-
         // Create Mistral batch job
         const mistralJob = await createMistralBatchJob(
             uploadedFiles.map(f => f.mistral_file_id),
@@ -677,7 +758,7 @@ async function handleBatchCreate(
         return jsonResponse({
             job_id: jobId,
             status: "processing",
-            file_count: files.length,
+            file_count: uploadedFiles.length,
             created_at: now,
         }, 201, setCookie);
 
@@ -695,6 +776,8 @@ async function handleBatchCreate(
         return jsonError(`Failed to create batch job: ${jobRecord.error}`, 500, setCookie);
     }
 }
+
+
 
 async function handleBatchStatus(
     request: Request,
@@ -917,7 +1000,7 @@ export default {
                     JSON.stringify({
                         status: "ok",
                         service: "Legal Document OCR API",
-                        version: "2.0.0",
+                        version: "2.1.0",
                         modes: {
                             standard: {
                                 endpoint: "POST /",

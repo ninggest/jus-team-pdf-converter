@@ -15,20 +15,57 @@ export type FileUpdateCallback = (id: string, update: Partial<FileItem>) => void
 /**
  * Process a single file through the OCR API
  */
-async function processFile(
-    file: File,
-    apiKey: string,
-    workerUrl: string
-): Promise<string> {
+/**
+ * Upload file directly to Mistral API
+ */
+async function uploadToMistral(file: File, apiKey: string): Promise<string> {
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("purpose", "ocr");
 
-    const response = await fetch(workerUrl, {
+    const response = await fetch("https://api.mistral.ai/v1/files", {
         method: "POST",
         headers: {
             Authorization: `Bearer ${apiKey}`,
         },
         body: formData,
+    });
+
+    if (!response.ok) {
+        throw new Error(`Mistral Upload Failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.id;
+}
+
+/**
+ * Process a single file through the OCR API
+ * Now uses Direct Upload pattern:
+ * 1. Upload to Mistral directly -> get ID
+ * 2. Send ID to Worker -> get Markdown
+ */
+async function processFile(
+    file: File,
+    apiKey: string,
+    workerUrl: string
+): Promise<string> {
+    // 1. Upload directly to Mistral (Bypasses Worker 50MB limit)
+    let fileId: string;
+    try {
+        fileId = await uploadToMistral(file, apiKey);
+    } catch (error) {
+        throw new Error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    }
+
+    // 2. Call Worker with Reference ID
+    const response = await fetch(workerUrl, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ mistral_file_id: fileId, filename: file.name }),
     });
 
     if (!response.ok) {

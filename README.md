@@ -13,7 +13,13 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v2.0.0 (Current)
+### v2.1.0 (Current)
+- **Direct Upload to Mistral**: Implemented direct file upload from frontend to Mistral API, completely bypassing Cloudflare Worker memory limits and resolving OOM errors for large files (>50MB).
+- **Architecture Upgrade**: Worker now receives `mistral_file_id` directly, significantly improving stability and speed.
+- **Enhanced Error Handling**: Improved robust error catching for both upload and processing phases.
+- **Footer Update**: Updated copyright year to 2026 and version display.
+
+### v2.0.0
 - **Async Processing & Access Code**: Introduced a persistent job system. Users get a 6-character "Access Code" to retrieve their background tasks later or from different devices.
 - **UI Localization**: Full Chinese localization for the entire interface.
 - **Mode Optimization**: Renamed modes to "Normal Mode" and "Async Mode" with detailed functional explanations.
