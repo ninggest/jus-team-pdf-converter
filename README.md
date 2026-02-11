@@ -19,6 +19,10 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 - **Improved Error Feedback**: Added user-friendly error messages distinguishing between network issues, rate limits, and API validation errors.
 
 ### v2.2.0
+- **Modular Backend Architecture**: Refactored Cloudflare Worker into a maintainable modular structure (`routes`, `services`, `utils`) for better extensibility.
+- **Unified API Client**: Centralized Mistral AI interactions into a single frontend logic hub, reducing code duplication and ensuring consistency.
+- **Enhanced Reliability**: Added automatic retry mechanisms on both frontend (uploads) and backend (OCR calls) to handle transient API errors.
+- **Performance Optimization**: Improved large file upload stability by optimizing `FormData` construction and network handling.
 
 ### v2.1.0
 - **Direct Upload to Mistral**: Implemented direct file upload from frontend to Mistral API, bypassing Cloudflare Worker memory limits and resolving OOM errors for large files.
