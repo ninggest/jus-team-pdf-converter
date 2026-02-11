@@ -59,7 +59,7 @@ export function Footer() {
                     </div>
 
                     <p className="text-center text-sm text-gray-400">
-                        Copyright (c) 2026 <span className="font-bold text-gray-600">Zane</span> v3.6.0
+                        Copyright (c) 2026 <span className="font-bold text-gray-600">Zane</span> v3.7.0
                     </p>
                 </div>
             </div>

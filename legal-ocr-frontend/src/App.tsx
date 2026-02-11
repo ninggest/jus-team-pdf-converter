@@ -39,7 +39,7 @@ function App() {
 
   // New state for dual-mode support
   const [processingMode, setProcessingMode] = useState<ProcessingMode>("standard");
-  const [refinementEnabled, setRefinementEnabled] = useState(true); // Default to enabled
+  const [refinementEnabled, setRefinementEnabled] = useState(false); // Default to disabled to avoid unexpected detail loss
   const [activeBatchJobs, setActiveBatchJobs] = useState<BatchJob[]>([]);
   const [showBatchHistory, setShowBatchHistory] = useState(false);
   const [accessCode, setAccessCode] = useState(() => {
@@ -300,7 +300,8 @@ function App() {
               <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">试验性功能</span>
             </span>
             <span className="text-xs text-gray-500 mt-1">
-              使用大模型 (Ministral-3b) 修复OCR格式错误，并根据上下文自动生成图片描述。
+              使用大模型 (Ministral-14b) 修复OCR格式错误，并根据上下文自动生成图片描述。
+              <span className="block mt-1 text-amber-600 font-medium italic">⚠️ 风险提示：处理篇幅较长的原文时可能出现内容归纳或细节丢失，建议谨慎使用。</span>
             </span>
           </div>
           <Switch

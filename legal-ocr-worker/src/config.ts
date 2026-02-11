@@ -11,5 +11,5 @@ export const MISTRAL_OCR_ENDPOINT = "https://api.mistral.ai/v1/ocr";
 export const MISTRAL_CHAT_ENDPOINT = "https://api.mistral.ai/v1/chat/completions";
 export const MISTRAL_BATCH_ENDPOINT = "https://api.mistral.ai/v1/batch/jobs";
 export const MISTRAL_OCR_MODEL = "mistral-ocr-latest";
-export const MISTRAL_CHAT_MODEL = "ministral-3b-2512";
+export const MISTRAL_CHAT_MODEL = "ministral-14b-2512";
 export const BATCH_JOB_TTL = 7 * 24 * 60 * 60; // 7 days in seconds

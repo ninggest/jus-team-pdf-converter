@@ -15,9 +15,13 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v3.6.0 (Current)
-- **Automatic PDF Splitting**: Files larger than 50MB are now automatically split into multiple parts (e.g., `<filename>_part1.pdf`) in the frontend. This bypasses the Mistral API's single-file size limit while maintaining the direct-upload architecture.
-- **Improved UX**: Splitting happens during file selection, giving immediate feedback in the file queue.
+### v3.7.0 (Current)
+- **Model Upgrade**: Upgraded the polish engine from `ministral-3b` to the more powerful `ministral-14b-2512`, improving legal document understanding and formatting precision.
+- **Faithfulness Optimization (Chunking)**: Implemented smart text chunking logic to process long documents in manageable segments, resolving the issue of "lazy" summarization or content omission by the LLM.
+- **Safety & Transparency**: The "Dual Engine Polish" feature is now disabled by default with an added risk warning, advising caution when processing documents requiring absolute textual integrity.
+- **Strict Loyalty Instructions**: Completely redesigned the LLM system prompt with strict English instructions to ensure output is 100% faithful to the OCR source text.
+
+### v3.6.0
 
 ### v3.5.1
 - **Clean Markdown Export**: Automatically detect and strip ` ```markdown ` or ` ``` ` code block wrappers from OCR results. This applies to individual file downloads, copy-to-clipboard actions, and merged documents, ensuring raw, ready-to-use Markdown.

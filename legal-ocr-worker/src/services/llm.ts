@@ -22,6 +22,8 @@ interface MistralChatResponse {
     };
 }
 
+const MAX_CHUNK_SIZE = 6000;
+
 export async function refineMarkdownWithLLM(
     markdown: string,
     apiKey: string
@@ -30,23 +32,83 @@ export async function refineMarkdownWithLLM(
         return markdown;
     }
 
+    // Split into chunks to avoid model "summarization" lazyness and token limits
+    const chunks = chunkMarkdown(markdown, MAX_CHUNK_SIZE);
+
+    if (chunks.length === 1) {
+        return await processChunk(chunks[0], apiKey);
+    }
+
+    console.log(`Processing ${chunks.length} LLM chunks...`);
+    const processedChunks = [];
+    for (const chunk of chunks) {
+        processedChunks.push(await processChunk(chunk, apiKey));
+    }
+
+    return processedChunks.join("\n\n");
+}
+
+function chunkMarkdown(text: string, maxLen: number): string[] {
+    const chunks: string[] = [];
+    let currentChunk = "";
+
+    // Split by paragraph to maintain context within a chunk
+    const paragraphs = text.split("\n\n");
+
+    for (const p of paragraphs) {
+        if ((currentChunk + p).length > maxLen && currentChunk.length > 0) {
+            chunks.push(currentChunk.trim());
+            currentChunk = "";
+        }
+
+        // If a single paragraph is too large, split it by lines
+        if (p.length > maxLen) {
+            const lines = p.split("\n");
+            for (const line of lines) {
+                if ((currentChunk + line).length > maxLen && currentChunk.length > 0) {
+                    chunks.push(currentChunk.trim());
+                    currentChunk = "";
+                }
+                currentChunk += line + "\n";
+            }
+        } else {
+            currentChunk += p + "\n\n";
+        }
+    }
+
+    if (currentChunk.trim().length > 0) {
+        chunks.push(currentChunk.trim());
+    }
+
+    return chunks;
+}
+
+async function processChunk(
+    markdown: string,
+    apiKey: string
+): Promise<string> {
     const systemPrompt = `You are a legal document assistant. Your task is to refine OCR output.
 
+### CRITICAL INSTRUCTION (STRICT FAITHFULNESS)
+1. **DO NOT SUMMARIZE**: You must preserve EVERY SINGLE WORD from the input.
+2. **DO NOT OMIT**: Never skip any sections, paragraphs, or small details.
+3. **DO NOT PARAPHRASE**: Keep the original legal wording exactly as is.
+4. **WRITTEN REPRODUCTION**: Your output should be a word-for-word reproduction of the input, with only the specific formatting and tag replacements allowed below.
+
 1. **Image Descriptions**: Analyze text around ![...] placeholders.
-    - **Legal Elements**: If the context suggests a signature, seal, or official stamp (e.g., near text like "签字", "签名", "盖章", "法定代表人", "Signed by"), rewrite the placeholder as \`![Signature/Seal]\`.
-    - **Evidence/Attachments**: If the context implies an ID card, license, or invoice (e.g., "身份证", "营业执照"), rewrite as \`![ID Card]\` or \`![Business License]\`.
-    - **Captions**: If you find a specific caption (e.g., "Figure 1: Org Chart"), use it: \`![Figure 1: Org Chart]\`.
-    - **Decorative**: If the image appears to be a decorative element (header icon, separator) with no semantic reference, REMOVE the placeholder line entirely.
-    - If strictly unsure, keep the generic placeholder.
+    - **Legal Elements**: If context suggests a signature, seal (e.g., "签字", "盖章", "Signed by"), rewrite as \`![Signature/Seal]\`.
+    - **Evidence**: If context implies ID card/license (e.g., "身份证", "营业执照"), rewrite as \`![ID Card]\` or \`![Business License]\`.
+    - **Decorative**: If no semantic reference, REMOVE the placeholder line.
+    - Otherwise, keep the generic placeholder.
 
 2. **Formatting**: 
-    - Merge paragraph lines that were incorrectly split by the OCR.
+    - Merge paragraph lines that were incorrectly split by OCR.
     - Ensure strictly ONE empty line between paragraphs.
     - Do NOT merge headers or list items into paragraphs.
 
 3. **Cleanup**: 
-    - Remove residual headers/footers (e.g., repeating page numbers, "Confidential" stamps at page boundaries).
-    
+    - Remove residual headers/footers (e.g., repeating page numbers).
+
 Output ONLY the refined markdown. Do not add any conversational text.`;
 
     try {
@@ -62,27 +124,21 @@ Output ONLY the refined markdown. Do not add any conversational text.`;
                     { role: "system", content: systemPrompt },
                     { role: "user", content: markdown },
                 ],
-                temperature: 0.2, // Low temperature for deterministic formatting
-                max_tokens: 8000, // Allow large output for long docs
+                temperature: 0.1, // Even lower for maximum stability
+                max_tokens: 8000,
             }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
             console.error(`LLM refinement failed: ${response.status} ${errorText}`);
-            // Fallback: return original markdown if LLM fails
             return markdown;
         }
 
         const data = (await response.json()) as MistralChatResponse;
         const refinedContent = data.choices[0]?.message?.content;
 
-        if (!refinedContent) {
-            console.warn("LLM returned empty content");
-            return markdown;
-        }
-
-        return refinedContent;
+        return refinedContent || markdown;
     } catch (error) {
         console.error("LLM refinement exception:", error);
         return markdown;
