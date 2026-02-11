@@ -36,6 +36,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-legal-50);
   color: var(--color-legal-900);
+  /* PWA safe area support */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Scrollbar styling */
