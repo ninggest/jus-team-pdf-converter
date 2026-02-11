@@ -17,9 +17,10 @@ import { Card, CardContent } from "./components/ui/card";
 import {
   generateFileId,
   processFilesSequentially,
+  type FileItem
 } from "./lib/batchProcessor";
 import { createBatchJob, listBatchJobs, type BatchJob, type BatchResult } from "./lib/batchApi";
-import type { FileItem } from "./lib/batchProcessor";
+import { getJobHistory, saveJobToHistory } from "./lib/historyManager";
 
 // Backend Worker URL
 const WORKER_URL = import.meta.env.VITE_WORKER_URL || "http://localhost:8787";
@@ -45,21 +46,45 @@ function App() {
     localStorage.setItem("batch_access_code", accessCode);
   }, [accessCode]);
 
+
+  // ... existing imports
+
   // Load batch jobs from backend when active or active code changes
   useEffect(() => {
     const loadBatchJobs = async () => {
+      // 1. Load local history first
+      const localHistory = getJobHistory(accessCode);
+
       try {
+        // 2. Fetch active jobs from backend
         const response = await listBatchJobs(WORKER_URL, accessCode);
-        if (response.jobs) {
-          setActiveBatchJobs(response.jobs);
+
+        if (response.jobs && response.jobs.length > 0) {
+          // Merge: Backend jobs take precedence for status updates
+          const mergedJobs = [...response.jobs];
+
+          // Add local history items that aren't in the backend response
+          // (Backend might expire jobs after 24h, but local history keeps them)
+          localHistory.forEach(localJob => {
+            if (!mergedJobs.find(j => j.job_id === localJob.job_id)) {
+              mergedJobs.push(localJob);
+            }
+          });
+
+          // Sort by creation time desc
+          mergedJobs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+          setActiveBatchJobs(mergedJobs);
         } else {
-          setActiveBatchJobs([]); // Clear if no jobs
+          // If no active jobs on backend, just show local history
+          setActiveBatchJobs(localHistory);
         }
       } catch (error) {
-        console.log("No previous batch jobs found");
-        setActiveBatchJobs([]);
+        console.log("Failed to fetch fresh batch jobs, showing local history");
+        setActiveBatchJobs(localHistory);
       }
     };
+
     if (processingMode === "batch") {
       loadBatchJobs();
     }
@@ -136,8 +161,11 @@ function App() {
           queuedFiles.map((f) => f.file),
           apiKey,
           WORKER_URL,
-          accessCode
+          accessCode,
         );
+
+        // Save to local history
+        saveJobToHistory(accessCode, job);
 
         setActiveBatchJobs((prev) => [job, ...prev]);
 

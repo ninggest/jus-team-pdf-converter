@@ -16,6 +16,12 @@ function StatusBadge({ status }: { status: FileItem["status"] }) {
             label: "Queued",
             className: "bg-gray-100 text-gray-700 border-gray-200",
         },
+        uploading: {
+            icon: Loader2,
+            label: "Uploading",
+            className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+            animate: true,
+        },
         processing: {
             icon: Loader2,
             label: "Processing",
@@ -77,15 +83,32 @@ export function FileQueueList({ files, onPreview, onRemove }: FileQueueListProps
                     >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className="min-w-0 flex-1">
-                                <p className="text-sm font-medium text-gray-900 truncate">
-                                    {file.file.name}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                    {formatFileSize(file.file.size)}
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                        {file.file.name}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-xs text-gray-500">
+                                        {formatFileSize(file.file.size)}
+                                    </p>
                                     {file.error && (
-                                        <span className="ml-2 text-red-500">• {file.error}</span>
+                                        <span className="text-xs text-red-500">• {file.error}</span>
                                     )}
-                                </p>
+                                </div>
+                                {file.status === "uploading" && (
+                                    <div className="mt-2 w-full max-w-xs">
+                                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-blue-500 transition-all duration-300 ease-out rounded-full"
+                                                style={{ width: `${file.uploadProgress || 0}%` }}
+                                            />
+                                        </div>
+                                        <p className="text-[10px] text-blue-600 mt-1 font-medium">
+                                            Uploading {Math.round(file.uploadProgress || 0)}%
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -113,7 +136,7 @@ export function FileQueueList({ files, onPreview, onRemove }: FileQueueListProps
                                         </Button>
                                     </>
                                 )}
-                                {file.status === "queued" && (
+                                {(file.status === "queued" || file.status === "failed") && (
                                     <Button
                                         variant="ghost"
                                         size="icon"

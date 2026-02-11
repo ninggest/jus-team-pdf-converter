@@ -5,7 +5,8 @@
 export interface FileItem {
     id: string;
     file: File;
-    status: "queued" | "processing" | "completed" | "failed";
+    status: "queued" | "uploading" | "processing" | "completed" | "failed";
+    uploadProgress?: number;
     markdown?: string;
     error?: string;
 }
@@ -26,12 +27,13 @@ import { uploadToMistral } from "./mistralClient";
 async function processFile(
     file: File,
     apiKey: string,
-    workerUrl: string
+    workerUrl: string,
+    onProgress?: (progress: number) => void
 ): Promise<string> {
     // 1. Upload directly to Mistral (Bypasses Worker 50MB limit)
     let fileId: string;
     try {
-        fileId = await uploadToMistral(file, apiKey);
+        fileId = await uploadToMistral(file, apiKey, onProgress);
     } catch (error) {
         throw new Error(`Upload failed: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
@@ -91,12 +93,17 @@ export async function processFilesSequentially(
             continue;
         }
 
-        // Mark as processing
-        onUpdate(fileItem.id, { status: "processing" });
+        // Mark as uploading
+        onUpdate(fileItem.id, { status: "uploading", uploadProgress: 0 });
 
         try {
-            const markdown = await processFile(fileItem.file, apiKey, workerUrl);
-            onUpdate(fileItem.id, { status: "completed", markdown });
+            const markdown = await processFile(
+                fileItem.file,
+                apiKey,
+                workerUrl,
+                (progress) => onUpdate(fileItem.id, { uploadProgress: progress })
+            );
+            onUpdate(fileItem.id, { status: "completed", markdown, uploadProgress: 100 });
         } catch (error) {
             const errorMessage =
                 error instanceof Error ? error.message : "Unknown error occurred";

@@ -44,14 +44,17 @@ export async function createBatchJob(
     files: File[],
     apiKey: string,
     workerUrl: string,
-    accessCode: string
+    accessCode: string,
+    onProgress?: (fileIndex: number, progress: number) => void
 ): Promise<BatchJob> {
 
     // 1. Upload all files to Mistral in parallel
     const uploadedFiles = await Promise.all(
-        files.map(async (file) => {
+        files.map(async (file, index) => {
             try {
-                const id = await uploadToMistral(file, apiKey);
+                const id = await uploadToMistral(file, apiKey, (progress) => {
+                    if (onProgress) onProgress(index, progress);
+                });
                 return { name: file.name, mistral_file_id: id };
             } catch (error) {
                 console.error(`Failed to upload ${file.name}:`, error);

@@ -13,7 +13,13 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v2.3.0 (Current)
+### v3.0.0 (Current)
+- **Real-time Upload Progress**: Integrated a visual progress bar using `XMLHttpRequest` to show live feedback during direct uploads to Mistral AI.
+- **Queue Management**: Added the ability for users to remove individual files from the queue or clear tasks before processing begins.
+- **Job History Persistence**: Implemented local history storage keyed by **Access Code**, allowing users to retrieve recent tasks even after page refreshes or device switching.
+- **UI/UX Polish**: Enhanced the file list interface with status badges and optimized action bars for better visibility.
+
+### v2.3.0
 - **Enhanced Robustness**: Implemented intelligent retry logic with `Retry-After` support for both frontend and backend, ensuring stability under Mistral API rate limits (429).
 - **Type Safety Upgrade**: Synchronized TypeScript definitions across frontend and backend for stricter type checking and reduced runtime errors.
 - **Improved Error Feedback**: Added user-friendly error messages distinguishing between network issues, rate limits, and API validation errors.
