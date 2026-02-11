@@ -1,4 +1,5 @@
 import { uploadToMistral } from "./mistralClient";
+import { splitLargePdf } from "./pdfUtils";
 
 /**
  * Unified Batch Job Interface (Frontend View)
@@ -48,10 +49,26 @@ export async function createBatchJob(
     onProgress?: (fileIndex: number, progress: number) => void,
     refineMode = false
 ): Promise<BatchJob> {
+    // 0. Pre-process files: Split large PDFs
+    const processedFiles: File[] = [];
+    for (const file of files) {
+        if (file.name.toLowerCase().endsWith(".pdf") && file.size > 48 * 1024 * 1024) {
+            try {
+                const splitParts = await splitLargePdf(file);
+                processedFiles.push(...splitParts);
+            } catch (error) {
+                console.error(`Failed to split PDF ${file.name}:`, error);
+                // Fallback to original file
+                processedFiles.push(file);
+            }
+        } else {
+            processedFiles.push(file);
+        }
+    }
 
     // 1. Upload all files to Mistral in parallel
     const uploadedFiles = await Promise.all(
-        files.map(async (file, index) => {
+        processedFiles.map(async (file, index) => {
             try {
                 const id = await uploadToMistral(file, apiKey, (progress) => {
                     if (onProgress) onProgress(index, progress);
@@ -59,7 +76,6 @@ export async function createBatchJob(
                 return { name: file.name, mistral_file_id: id };
             } catch (error) {
                 console.error(`Failed to upload ${file.name}:`, error);
-                // Propagate the actual error message if available
                 const msg = error instanceof Error ? error.message : "Unknown error";
                 throw new Error(`Failed to upload ${file.name}: ${msg}`);
             }

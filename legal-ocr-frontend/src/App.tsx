@@ -22,6 +22,7 @@ import {
   type FileItem
 } from "./lib/batchProcessor";
 import { createBatchJob, listBatchJobs, type BatchJob, type BatchResult } from "./lib/batchApi";
+import { splitLargePdf } from "./lib/pdfUtils";
 import { getJobHistory, saveJobToHistory } from "./lib/historyManager";
 import type { MergeItem } from "./types";
 
@@ -113,8 +114,24 @@ function App() {
     setApiKey(key);
   }, []);
 
-  const handleFilesSelect = useCallback((files: File[]) => {
-    const newItems: FileItem[] = files.map((file) => ({
+  const handleFilesSelect = useCallback(async (files: File[]) => {
+    const processedFiles: File[] = [];
+
+    for (const file of files) {
+      if (file.name.toLowerCase().endsWith(".pdf") && file.size > 48 * 1024 * 1024) {
+        try {
+          const parts = await splitLargePdf(file);
+          processedFiles.push(...parts);
+        } catch (error) {
+          console.error(`Failed to split ${file.name}:`, error);
+          processedFiles.push(file); // Fallback
+        }
+      } else {
+        processedFiles.push(file);
+      }
+    }
+
+    const newItems: FileItem[] = processedFiles.map((file) => ({
       id: generateFileId(),
       file,
       status: "queued",

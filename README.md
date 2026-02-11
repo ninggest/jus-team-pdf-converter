@@ -10,11 +10,16 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 - **Smart Refinement (Dual Engine)**: Utilizes Mistral LLMs to polish OCR results, merge incorrectly split paragraphs, and automatically identify legal elements (signatures, seals) to add meaningful image descriptions.
 - **Batch Sort & Merge**: Combine multiple results into a single document with custom ordering and automatic **code block stripping**, processed entirely client-side.
 - **Async Processing**: Background OCR processing with task persistence. Features an **Access Code** system to retrieve jobs across sessions/devices.
+- **Large File Automatic Splitting**: Automatically splits PDF files exceeding 50MB into smaller parts in the frontend to ensure compatibility with API limits.
 - **Privacy-First Design**: Full client-side API key management and direct-to-Mistral uploads for large files to ensure data security and performance.
 
 ## 📍 Version History
 
-### v3.5.1 (Current)
+### v3.6.0 (Current)
+- **Automatic PDF Splitting**: Files larger than 50MB are now automatically split into multiple parts (e.g., `<filename>_part1.pdf`) in the frontend. This bypasses the Mistral API's single-file size limit while maintaining the direct-upload architecture.
+- **Improved UX**: Splitting happens during file selection, giving immediate feedback in the file queue.
+
+### v3.5.1
 - **Clean Markdown Export**: Automatically detect and strip ` ```markdown ` or ` ``` ` code block wrappers from OCR results. This applies to individual file downloads, copy-to-clipboard actions, and merged documents, ensuring raw, ready-to-use Markdown.
 
 ### v3.5.0
@@ -29,7 +34,7 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 - **Advanced Formatting**: Automatically merges broken paragraphs, removes repetitive headers/footers, and standardizes document spacing.
 
 ### v3.0.0
-- **Real-time Upload Progress**: Integrated a visual progress bar using `XMLHttpRequest` to show live feedback during direct uploads to Mistral AI.
+- **Real-time Upload Progress**: Integrated a visual progress bar using `XMLHttpRequest` to show live feedback during direct uploads to Mistral (mistral-ocr).
 - **Queue Management**: Added the ability for users to remove individual files from the queue or clear tasks before processing begins.
 - **Job History Persistence**: Implemented local history storage keyed by **Access Code**, allowing users to retrieve recent tasks even after page refreshes or device switching.
 - **UI/UX Polish**: Enhanced the file list interface with status badges and optimized action bars for better visibility.
@@ -41,7 +46,7 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ### v2.2.0
 - **Modular Backend Architecture**: Refactored Cloudflare Worker into a maintainable modular structure (`routes`, `services`, `utils`) for better extensibility.
-- **Unified API Client**: Centralized Mistral AI interactions into a single frontend logic hub, reducing code duplication and ensuring consistency.
+- **Unified API Client**: Centralized Mistral (mistral-ocr) interactions into a single frontend logic hub, reducing code duplication and ensuring consistency.
 - **Enhanced Reliability**: Added automatic retry mechanisms on both frontend (uploads) and backend (OCR calls) to handle transient API errors.
 - **Performance Optimization**: Improved large file upload stability by optimizing `FormData` construction and network handling.
 
@@ -63,14 +68,14 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 - **Memory Optimization**: Reduced Cloudflare Worker memory usage by over 90%.
 
 ### v1.1.0
-- **Privacy Compliance Update**: Added detailed data privacy and flow notice, explicitly informing users that PDF files are uploaded to Mistral AI (EU servers) for processing.
+- **Privacy Compliance Update**: Added detailed data privacy and flow notice, explicitly informing users that PDF files are uploaded to Mistral (mistral-ocr) (EU servers) for processing.
 - **UI UX Optimization**: Fixed alignment issues in the empty state and optimized the visual hierarchy of notice text.
 
 ### v1.0.0
 - **Initial Release**: Established full frontend-to-backend communication.
 - **Automatic Alignment**: Centered layout optimized for various browser sizes.
 - **Batch Task Engine**: Stable support for multiple file uploads and state synchronization.
-- **Mistral OCR Integration**: Deeply adapted to Mistral AI's latest OCR capabilities.
+- **Mistral OCR Integration**: Deeply adapted to Mistral (mistral-ocr)'s latest OCR capabilities.
 - **Jus Team Branding**: Integrated full Jus Team visual identity system.
 
 ## 🛠 Technical Architecture
@@ -118,11 +123,11 @@ This project adopts a transparent and compliant data flow to ensure the highest 
 
 ### 1. Data Flow Disclosure
 - **API Key Handling**: Your Mistral API Key resides **only** in your browser's LocalStorage. It is passed via encrypted channels to the Cloudflare Worker for invocation. **Jus Team servers never touch or store your keys.**
-- **Document Routing**: PDF files are transmitted from your browser through the Cloudflare Worker via high-performance memory transit (no caching, no disk storage) directly to Mistral AI's official OCR API.
+- **Document Routing**: PDF files are transmitted from your browser through the Cloudflare Worker via high-performance memory transit (no caching, no disk storage) directly to Mistral (mistral-ocr)'s official OCR API.
 
 ### 2. Server Location & Compliance
-- **Backend Processor**: The core OCR logic is provided by **Mistral AI**, a French AI company. Please be aware that your documents are uploaded to Mistral AI servers for recognition.
-- **Data Residency**: Mistral AI servers are primarily located in the **European Union (EU)**. If your organization has strict data residency requirements (e.g., data cannot leave your country), please evaluate carefully before use.
+- **Backend Processor**: The core OCR logic is provided by **Mistral (mistral-ocr)**, a French AI company. Please be aware that your documents are uploaded to Mistral (mistral-ocr) servers for recognition.
+- **Data Residency**: Mistral (mistral-ocr) servers are primarily located in the **European Union (EU)**. If your organization has strict data residency requirements (e.g., data cannot leave your country), please evaluate carefully before use.
 
 ### 3. Transparency Commitment
 - No persistent storage or databases are used in this project.

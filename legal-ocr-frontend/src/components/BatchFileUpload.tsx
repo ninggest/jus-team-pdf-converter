@@ -113,7 +113,7 @@ export function BatchFileUpload({
                             : "拖放 PDF 文件到这里，或点击选择文件"}
                     </p>
                     <p className="text-sm text-gray-500 mt-1">
-                        支持多个 PDF 文件，每个最大 50MB
+                        超过 50MB 的文件将被自动切割为多个文件
                     </p>
                 </div>
             </div>
