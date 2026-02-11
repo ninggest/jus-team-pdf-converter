@@ -118,9 +118,9 @@ function App() {
     const processedFiles: File[] = [];
 
     for (const file of files) {
-      if (file.name.toLowerCase().endsWith(".pdf") && file.size > 48 * 1024 * 1024) {
+      if (file.name.toLowerCase().endsWith(".pdf") && file.size > 20 * 1024 * 1024) {
         try {
-          const parts = await splitLargePdf(file);
+          const parts = await splitLargePdf(file, 20);
           processedFiles.push(...parts);
         } catch (error) {
           console.error(`Failed to split ${file.name}:`, error);

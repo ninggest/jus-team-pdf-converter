@@ -3,10 +3,10 @@ import { PDFDocument } from 'pdf-lib';
 /**
  * Splits a PDF file into multiple files if it exceeds the max size.
  * @param file The PDF file to split
- * @param maxSizeMB Threshold in MB (default 48MB to be safe)
+ * @param maxSizeMB Threshold in MB (default 20MB to be safe and fast)
  * @returns A promise that resolves to an array of Files
  */
-export async function splitLargePdf(file: File, maxSizeMB: number = 48): Promise<File[]> {
+export async function splitLargePdf(file: File, maxSizeMB: number = 20): Promise<File[]> {
     if (file.size <= maxSizeMB * 1024 * 1024) {
         return [file];
     }

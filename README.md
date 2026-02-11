@@ -10,16 +10,15 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 - **Smart Refinement (Dual Engine)**: Utilizes Mistral LLMs to polish OCR results, merge incorrectly split paragraphs, and automatically identify legal elements (signatures, seals) to add meaningful image descriptions.
 - **Batch Sort & Merge**: Combine multiple results into a single document with custom ordering and automatic **code block stripping**, processed entirely client-side.
 - **Async Processing**: Background OCR processing with task persistence. Features an **Access Code** system to retrieve jobs across sessions/devices.
-- **Large File Automatic Splitting**: Automatically splits PDF files exceeding 50MB into smaller parts in the frontend to ensure compatibility with API limits.
+- **Large File Automatic Splitting**: Automatically splits PDF files exceeding 20MB into smaller parts in the frontend to ensure stability during synchronized processing, especially with LLM refinement enabled.
 - **Privacy-First Design**: Full client-side API key management and direct-to-Mistral uploads for large files to ensure data security and performance.
 
 ## 📍 Version History
 
-### v3.7.0 (Current)
-- **Model Upgrade**: Upgraded the polish engine from `ministral-3b` to the more powerful `ministral-14b-2512`, improving legal document understanding and formatting precision.
-- **Faithfulness Optimization (Chunking)**: Implemented smart text chunking logic to process long documents in manageable segments, resolving the issue of "lazy" summarization or content omission by the LLM.
-- **Safety & Transparency**: The "Dual Engine Polish" feature is now disabled by default with an added risk warning, advising caution when processing documents requiring absolute textual integrity.
-- **Strict Loyalty Instructions**: Completely redesigned the LLM system prompt with strict English instructions to ensure output is 100% faithful to the OCR source text.
+### v3.7.1 (Current)
+- **Split Threshold Optimization**: Lowered the automatic PDF splitting threshold from 50MB to **20MB**. This addresses Cloudflare Worker timeout (30s) issues during "Dual Engine Polish" on large documents, significantly improving reliability in Normal mode.
+
+### v3.7.0
 
 ### v3.6.0
 
