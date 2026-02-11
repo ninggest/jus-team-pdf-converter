@@ -17,7 +17,7 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
 
                 {/* Decorative Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white relative overflow-hidden flex-shrink-0">
-                    <div className="absolute top-0 right-0 -mt-2 -mr-2 opacity-10">
+                    <div className="absolute top-0 right-0 -mt-2 -mr-2 opacity-10 pointer-events-none">
                         <Rocket className="w-24 h-24 transform rotate-45" />
                     </div>
 
@@ -35,7 +35,7 @@ export function ReleaseNotesModal({ isOpen, onClose }: ReleaseNotesModalProps) {
 
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 text-white/70 hover:text-white hover:bg-white/10 rounded-full p-1 transition-colors"
+                        className="absolute top-4 right-4 text-white/70 hover:text-white hover:bg-white/10 rounded-full p-2 transition-colors z-20"
                     >
                         <X className="w-5 h-5" />
                     </button>
