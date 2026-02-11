@@ -48,6 +48,24 @@ export function RedactionTool({ initialText, fileName, onClose }: RedactionToolP
         }, 300);
     };
 
+    const updateMatch = (id: string, updates: Partial<RedactionMatch>) => {
+        const targetMatch = matches.find(m => m.id === id);
+        if (!targetMatch) return;
+
+        setMatches(prev => prev.map(m => {
+            // Apply update to the specific item AND all other items that share the same original text and category
+            if (m.id === id || (m.original === targetMatch.original && m.category === targetMatch.category)) {
+                const newMatch = { ...m, ...updates };
+                // If original text changed, we MUST adjust endIndex to keep the slice correct
+                if (updates.original !== undefined) {
+                    newMatch.endIndex = newMatch.startIndex + updates.original.length;
+                }
+                return newMatch;
+            }
+            return m;
+        }));
+    };
+
     const toggleMatchSelection = (id: string) => {
         setMatches(prev => prev.map(m => m.id === id ? { ...m, isSelected: !m.isSelected } : m));
     };
@@ -201,6 +219,77 @@ export function RedactionTool({ initialText, fileName, onClose }: RedactionToolP
                         <div className="flex-1 flex overflow-hidden">
                             {/* List View */}
                             <div className="w-1/2 border-r border-gray-100 flex flex-col">
+                                <div className="p-4 border-b border-gray-100 bg-gray-50/30">
+                                    <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                        <Plus className="h-3 w-3" />
+                                        手动添加脱敏项
+                                    </h4>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 space-y-2">
+                                            <input
+                                                type="text"
+                                                id="manual-original"
+                                                placeholder="敏感原件 (如: 张三)"
+                                                className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                            />
+                                            <input
+                                                type="text"
+                                                id="manual-replacement"
+                                                placeholder="替换名称 (如: 【姓名】)"
+                                                className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                                            />
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-auto py-2"
+                                            onClick={() => {
+                                                const originalInput = document.getElementById('manual-original') as HTMLInputElement;
+                                                const replacementInput = document.getElementById('manual-replacement') as HTMLInputElement;
+                                                const originalVal = originalInput.value.trim();
+                                                const replacementVal = replacementInput.value.trim();
+
+                                                if (originalVal && replacementVal) {
+                                                    const newMatches: RedactionMatch[] = [];
+                                                    let pos = originalText.indexOf(originalVal);
+
+                                                    while (pos !== -1) {
+                                                        // Check if this position is already covered by an existing match
+                                                        const isOverlap = matches.some(m =>
+                                                            (pos >= m.startIndex && pos < m.endIndex) ||
+                                                            (pos + originalVal.length > m.startIndex && pos + originalVal.length <= m.endIndex)
+                                                        );
+
+                                                        if (!isOverlap) {
+                                                            newMatches.push({
+                                                                id: `manual-${Date.now()}-${pos}`,
+                                                                category: "blacklist",
+                                                                original: originalVal,
+                                                                startIndex: pos,
+                                                                endIndex: pos + originalVal.length,
+                                                                replacement: replacementVal,
+                                                                isSelected: true
+                                                            });
+                                                        }
+                                                        pos = originalText.indexOf(originalVal, pos + 1);
+                                                    }
+
+                                                    if (newMatches.length === 0) {
+                                                        alert("在文档中未找到该文字，或该文字已被其他脱敏项覆盖。");
+                                                        return;
+                                                    }
+
+                                                    setMatches(prev => [...prev, ...newMatches]);
+                                                    originalInput.value = '';
+                                                    replacementInput.value = '';
+                                                }
+                                            }}
+                                        >
+                                            添加
+                                        </Button>
+                                    </div>
+                                </div>
+
                                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                                     {filteredMatches.length === 0 ? (
                                         <div className="h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
@@ -236,15 +325,27 @@ export function RedactionTool({ initialText, fileName, onClose }: RedactionToolP
                                                         <Trash2 className="h-4 w-4" />
                                                     </button>
                                                 </div>
-                                                <div className="space-y-1.5">
-                                                    <div className="text-sm font-mono bg-red-50 text-red-700 px-2 py-1 rounded border border-red-100/50 break-all">
-                                                        {match.original}
+                                                <div className="space-y-2">
+                                                    <div className="relative">
+                                                        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-red-300 pointer-events-none">原件</div>
+                                                        <input
+                                                            type="text"
+                                                            value={match.original}
+                                                            onChange={(e) => updateMatch(match.id, { original: e.target.value })}
+                                                            className="w-full pl-10 pr-2 py-1.5 text-sm font-mono bg-red-50 text-red-700 border border-red-100/50 rounded outline-none focus:ring-1 focus:ring-red-200"
+                                                        />
                                                     </div>
-                                                    <div className="flex items-center justify-center py-0.5">
-                                                        <Plus className="h-3 w-3 text-gray-300 rotate-45" />
+                                                    <div className="flex items-center justify-center -my-1">
+                                                        <RefreshCw className="h-3 w-3 text-gray-300" />
                                                     </div>
-                                                    <div className="text-sm font-mono bg-green-50 text-green-700 px-2 py-1 rounded border border-green-100/50 break-all font-bold">
-                                                        {match.replacement}
+                                                    <div className="relative">
+                                                        <div className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-green-300 pointer-events-none">替换</div>
+                                                        <input
+                                                            type="text"
+                                                            value={match.replacement}
+                                                            onChange={(e) => updateMatch(match.id, { replacement: e.target.value })}
+                                                            className="w-full pl-10 pr-2 py-1.5 text-sm font-mono bg-green-50 text-green-700 border border-green-100/50 rounded outline-none focus:ring-1 focus:ring-green-200 font-bold"
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>

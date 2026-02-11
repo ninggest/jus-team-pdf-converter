@@ -13,6 +13,7 @@ export interface RedactionMatch {
 export function identifyRedactions(text: string, rules: RedactionRule[] = DEFAULT_RULES): RedactionMatch[] {
     const matches: RedactionMatch[] = [];
     const typeCounters: Record<string, number> = {};
+    const textToReplacementMap: Record<string, string> = {}; // category:original -> replacement
 
     for (const rule of rules) {
         for (const pattern of rule.patterns) {
@@ -30,12 +31,18 @@ export function identifyRedactions(text: string, rules: RedactionRule[] = DEFAUL
                 );
 
                 if (!isOverlapping) {
-                    typeCounters[rule.category] = (typeCounters[rule.category] || 0) + 1;
-                    const index = typeCounters[rule.category];
-                    const replacement = rule.replacement.replace('${index}', index.toString());
+                    const mapKey = `${rule.category}:${original}`;
+                    let replacement = textToReplacementMap[mapKey];
+
+                    if (!replacement) {
+                        typeCounters[rule.category] = (typeCounters[rule.category] || 0) + 1;
+                        const index = typeCounters[rule.category];
+                        replacement = rule.replacement.replace('${index}', index.toString());
+                        textToReplacementMap[mapKey] = replacement;
+                    }
 
                     matches.push({
-                        id: `${rule.category}-${index}-${startIndex}`,
+                        id: `${rule.category}-${startIndex}`, // Use startIndex for uniqueness
                         category: rule.category,
                         original,
                         startIndex,
