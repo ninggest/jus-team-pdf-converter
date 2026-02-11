@@ -22,7 +22,8 @@ interface MistralChatResponse {
     };
 }
 
-const MAX_CHUNK_SIZE = 6000;
+const MAX_CHUNK_SIZE = 12000;
+const CONCURRENCY_LIMIT = 5;
 
 export async function refineMarkdownWithLLM(
     markdown: string,
@@ -39,10 +40,20 @@ export async function refineMarkdownWithLLM(
         return await processChunk(chunks[0], apiKey);
     }
 
-    console.log(`Processing ${chunks.length} LLM chunks...`);
-    const processedChunks = [];
-    for (const chunk of chunks) {
-        processedChunks.push(await processChunk(chunk, apiKey));
+    console.log(`Processing ${chunks.length} LLM chunks in parallel (limit: ${CONCURRENCY_LIMIT})...`);
+
+    // Process chunks in parallel with a concurrency limit
+    const processedChunks: string[] = new Array(chunks.length);
+
+    for (let i = 0; i < chunks.length; i += CONCURRENCY_LIMIT) {
+        const batch = chunks.slice(i, i + CONCURRENCY_LIMIT);
+        const batchPromises = batch.map((chunk, index) => {
+            const chunkIndex = i + index;
+            return processChunk(chunk, apiKey).then(result => {
+                processedChunks[chunkIndex] = result;
+            });
+        });
+        await Promise.all(batchPromises);
     }
 
     return processedChunks.join("\n\n");
