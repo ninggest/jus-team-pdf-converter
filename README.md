@@ -15,10 +15,12 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v3.7.2 (Current)
-- **Fix PDF Split Loop**: Resolved a logic bug in `splitLargePdf` that could cause an infinite loop when processing specific PDF structures over 20MB, improving splitting stability.
+### v3.8.0 (Current)
+- **Pure OCR Mode**: Removed the "Dual Engine Polish" feature to prioritize stability and speed. The system now focuses exclusively on high-fidelity OCR conversion.
+- **Backend Optimization**: Removed LLM-related services from the Cloudflare Worker, reducing bundle size and eliminating timeout risks associated with synchronous LLM processing.
+- **Threshold Restoration**: Restored the automatic PDF splitting threshold to **50MB**, allowing larger files to be processed in a single pass without fragmentation.
 
-### v3.7.1
+### v3.7.2
 - **Split Threshold Optimization**: Lowered the automatic PDF splitting threshold from 50MB to **20MB**. This addresses Cloudflare Worker timeout (30s) issues during "Dual Engine Polish" on large documents, significantly improving reliability in Normal mode.
 
 ### v3.7.0

@@ -7,7 +7,6 @@ import {
     processOCRToMarkdown,
     uploadFileToMistral
 } from "../services/mistral";
-import { refineMarkdownWithLLM } from "../services/llm";
 import { saveBatchJob, getBatchJob, listBatchJobs as listStorageBatchJobs } from "../services/storage";
 import { extractApiKey } from "../utils/auth";
 import { extractMultiplePdfsFromRequest } from "../utils/file";
@@ -25,7 +24,6 @@ export async function handleBatchCreate(
     }
 
     let uploadedFiles: { name: string; mistral_file_id: string }[] = [];
-    let refineMode = false;
     const url = new URL(request.url); // Check query params too
 
     const contentType = request.headers.get("Content-Type") || "";
@@ -33,21 +31,13 @@ export async function handleBatchCreate(
     // Mode 1: Direct File IDs (JSON)
     if (contentType.includes("application/json")) {
         try {
-            const body = await request.json() as { files: { name: string; mistral_file_id: string }[], refine_mode?: boolean };
+            const body = await request.json() as { files: { name: string; mistral_file_id: string }[] };
             if (body.files && Array.isArray(body.files)) {
                 uploadedFiles = body.files;
-            }
-            if (typeof body.refine_mode === "boolean") {
-                refineMode = body.refine_mode;
             }
         } catch {
             // Ignore JSON parse errors, fall back to multipart
         }
-    }
-
-    // Fallback: Check query param for refine_mode if not in JSON
-    if (url.searchParams.get("refine_mode") === "true") {
-        refineMode = true;
     }
 
     // Mode 2: Legacy Multipart Upload (if Mode 1 didn't provide files)
@@ -94,7 +84,6 @@ export async function handleBatchCreate(
         files: uploadedFiles,
         created_at: now,
         updated_at: now,
-        refine_mode: refineMode,
     };
 
     // Save initial record
@@ -185,19 +174,6 @@ export async function handleBatchStatus(
                         }
                     }
 
-                    // Dual Engine Polish (Refinement)
-                    if (record.refine_mode) {
-                        for (const result of results) {
-                            if (result.markdown && !result.error) {
-                                try {
-                                    result.markdown = await refineMarkdownWithLLM(result.markdown, apiKey);
-                                } catch (e) {
-                                    console.error(`Refinement failed for ${result.file_name}:`, e);
-                                    // Keep original markdown on failure
-                                }
-                            }
-                        }
-                    }
 
                     record.results = results;
                 }

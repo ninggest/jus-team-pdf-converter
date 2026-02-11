@@ -1,7 +1,6 @@
 import type { MistralOCRResponse } from "../types";
 import { MISTRAL_OCR_MODEL } from "../config";
 import { callMistralOCR, processOCRToMarkdown, getSignedUrl, callMistralOCRWithUrl } from "../services/mistral";
-import { refineMarkdownWithLLM } from "../services/llm";
 import { extractApiKey } from "../utils/auth";
 import { extractPdfFromRequest } from "../utils/file";
 import { jsonError, markdownResponse } from "../utils/response";
@@ -87,13 +86,5 @@ export async function handleOCRRequest(request: Request): Promise<Response> {
     }
 
     // Dual Engine Polish
-    const url = new URL(request.url);
-    const refineMode = url.searchParams.get("refine_mode") === "true";
-
-    if (refineMode) {
-        const refined = await refineMarkdownWithLLM(markdown, apiKey);
-        return markdownResponse(refined, request);
-    }
-
     return markdownResponse(markdown, request);
 }

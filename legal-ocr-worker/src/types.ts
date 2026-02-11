@@ -73,5 +73,4 @@ export interface BatchJobRecord {
     created_at: string;
     updated_at: string;
     error?: string;
-    refine_mode?: boolean;
 }
