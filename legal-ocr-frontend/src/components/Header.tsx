@@ -18,7 +18,7 @@ export function Header() {
             >
                 <div className="flex items-center gap-4">
                     <img
-                        src="https://img.xico.uk/logo.png"
+                        src="/logo.png"
                         alt="Jus Team Logo"
                         className="h-10 w-auto"
                     />

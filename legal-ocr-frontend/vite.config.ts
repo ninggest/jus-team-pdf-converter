@@ -10,13 +10,20 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'logo.png', 'apple-touch-icon.png'],
+      devOptions: {
+        enabled: true // Enable for testing in dev mode
+      },
       manifest: {
+        id: '/',
         name: 'Jus Team PDF Converter',
         short_name: 'PDF Converter',
         description: 'Professional Legal Document OCR and Converter',
         theme_color: '#2563eb',
         background_color: '#ffffff',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        orientation: 'portrait',
         icons: [
           {
             src: 'logo.png',
