@@ -280,7 +280,7 @@ function App() {
           <div className="flex flex-col">
             <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
               ✨ 双引擎智能润色 (Dual Engine Polish)
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">New</span>
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full">试验性功能</span>
             </span>
             <span className="text-xs text-gray-500 mt-1">
               使用大模型 (Ministral-3b) 修复OCR格式错误，并根据上下文自动生成图片描述。
