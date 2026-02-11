@@ -1,7 +1,9 @@
-/**
- * Batch API client for Mistral OCR batch processing
- */
+import { uploadToMistral } from "./mistralClient";
 
+/**
+ * Unified Batch Job Interface (Frontend View)
+ * Matches the JSON response from Worker
+ */
 export interface BatchJob {
     job_id: string;
     status: "queued" | "uploading" | "processing" | "completed" | "failed";
@@ -34,13 +36,8 @@ export interface BatchListResponse {
 
 /**
  * Create a new batch OCR job
- */
-import { uploadToMistral } from "./mistralClient";
-
-/**
- * Create a new batch OCR job
  * Uses Direct Upload:
- * 1. Uploads files to Mistral client-side
+ * 1. Uploads files to Mistral client-side (with retries)
  * 2. Sends IDs to Worker to start batch
  */
 export async function createBatchJob(
@@ -58,7 +55,9 @@ export async function createBatchJob(
                 return { name: file.name, mistral_file_id: id };
             } catch (error) {
                 console.error(`Failed to upload ${file.name}:`, error);
-                throw new Error(`Failed to upload ${file.name} to Mistral`);
+                // Propagate the actual error message if available
+                const msg = error instanceof Error ? error.message : "Unknown error";
+                throw new Error(`Failed to upload ${file.name}: ${msg}`);
             }
         })
     );

@@ -26,8 +26,17 @@ async function fetchWithRetry(
         try {
             const response = await fetch(url, options);
 
-            // Retry on 5xx server errors or 429 rate limits
-            if (!response.ok && (response.status >= 500 || response.status === 429)) {
+            // Handle Rate Limits (429)
+            if (response.status === 429) {
+                const retryAfter = response.headers.get("Retry-After");
+                const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : Math.pow(2, i);
+                console.warn(`Mistral rate limit (429). Retrying in ${waitSeconds}s...`);
+                await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+                continue;
+            }
+
+            // Retry on 5xx server errors
+            if (!response.ok && response.status >= 500) {
                 const errorText = await response.text();
                 throw new Error(`Mistral API error ${response.status}: ${errorText}`);
             }

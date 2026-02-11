@@ -1,6 +1,4 @@
-/**
- * Client for interacting with Mistral API directly
- */
+import type { MistralFileUploadResponse, MistralErrorResponse } from "../types";
 
 const MISTRAL_FILES_ENDPOINT = "https://api.mistral.ai/v1/files";
 
@@ -27,15 +25,33 @@ export async function uploadToMistral(file: File, apiKey: string): Promise<strin
             });
 
             if (!response.ok) {
-                // If it's a client error (4xx), don't retry (except 429)
-                if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-                    throw new Error(`Mistral Upload Failed: ${response.status} ${response.statusText}`);
+                // Handle Rate Limiting (429) specially
+                if (response.status === 429) {
+                    const retryAfter = response.headers.get("Retry-After");
+                    const waitSeconds = retryAfter ? parseInt(retryAfter, 10) : Math.pow(2, attempts); // Default slightly exponential if header missing
+                    console.warn(`Mistral Rate Limit (429). Waiting ${waitSeconds}s...`);
+                    await new Promise(resolve => setTimeout(resolve, waitSeconds * 1000));
+                    attempts++;
+                    continue; // Retry immediately after wait
                 }
+
+                // If it's a client error (4xx), don't retry (except 429 which is handled above)
+                if (response.status >= 400 && response.status < 500) {
+                    const errorText = await response.text();
+                    let errorMessage = `Mistral Upload Failed (${response.status}): ${errorText}`;
+                    try {
+                        const errorJson = JSON.parse(errorText) as MistralErrorResponse;
+                        if (errorJson.message) errorMessage = errorJson.message;
+                    } catch { /* ignore */ }
+                    throw new Error(errorMessage);
+                }
+
                 throw new Error(`Mistral Upload Failed: ${response.status} ${response.statusText}`);
             }
 
-            const data = await response.json();
+            const data = (await response.json()) as MistralFileUploadResponse;
             return data.id;
+
         } catch (error) {
             attempts++;
             console.warn(`Upload attempt ${attempts} failed:`, error);
