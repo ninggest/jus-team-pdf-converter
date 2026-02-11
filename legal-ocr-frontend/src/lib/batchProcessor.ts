@@ -15,29 +15,7 @@ export type FileUpdateCallback = (id: string, update: Partial<FileItem>) => void
 /**
  * Process a single file through the OCR API
  */
-/**
- * Upload file directly to Mistral API
- */
-async function uploadToMistral(file: File, apiKey: string): Promise<string> {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("purpose", "ocr");
-
-    const response = await fetch("https://api.mistral.ai/v1/files", {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-        },
-        body: formData,
-    });
-
-    if (!response.ok) {
-        throw new Error(`Mistral Upload Failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.id;
-}
+import { uploadToMistral } from "./mistralClient";
 
 /**
  * Process a single file through the OCR API

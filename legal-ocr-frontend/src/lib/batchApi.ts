@@ -35,29 +35,7 @@ export interface BatchListResponse {
 /**
  * Create a new batch OCR job
  */
-/**
- * Helper to upload file to Mistral (Duplicated to avoid circular dependency or extract later)
- */
-async function uploadToMistral(file: File, apiKey: string): Promise<string> {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("purpose", "ocr");
-
-    const response = await fetch("https://api.mistral.ai/v1/files", {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-        },
-        body: formData,
-    });
-
-    if (!response.ok) {
-        throw new Error(`Mistral Upload Failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.id;
-}
+import { uploadToMistral } from "./mistralClient";
 
 /**
  * Create a new batch OCR job
