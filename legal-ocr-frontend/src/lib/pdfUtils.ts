@@ -23,7 +23,7 @@ export async function splitLargePdf(file: File, maxSizeMB: number = 20): Promise
     }
 
     const estimatedPageSize = file.size / pageCount;
-    const maxPagesPerChunk = Math.max(1, Math.floor((maxSizeMB * 1024 * 1024 * 0.9) / estimatedPageSize));
+    let maxPagesPerChunk = Math.max(1, Math.floor((maxSizeMB * 1024 * 1024 * 0.9) / estimatedPageSize));
 
     const results: File[] = [];
     let currentStart = 0;
@@ -44,10 +44,8 @@ export async function splitLargePdf(file: File, maxSizeMB: number = 20): Promise
         if (pdfBytes.length > maxSizeMB * 1024 * 1024 && (currentEnd - currentStart) > 1) {
             // Re-adjust for next iteration: half the pages
             console.warn(`Chunk still too large (${(pdfBytes.length / 1024 / 1024).toFixed(2)} MB), shrinking...`);
-            // We don't advance currentStart, just reduce maxPagesPerChunk
-            const newMax = Math.max(1, Math.floor((currentEnd - currentStart) / 2));
-            currentEnd = currentStart + newMax;
-
+            // We update the global maxPagesPerChunk to ensure the next iteration (via continue) uses a smaller range
+            maxPagesPerChunk = Math.max(1, Math.floor((currentEnd - currentStart) / 2));
             // Re-try with smaller range
             continue;
         }

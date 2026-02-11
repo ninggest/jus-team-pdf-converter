@@ -15,8 +15,10 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v3.7.1 (Current)
-- **Split Threshold Optimization**: Lowered the automatic PDF splitting threshold from 50MB to **20MB**. This addresses Cloudflare Worker timeout (30s) issues during "Dual Engine Polish" on large documents, significantly improving reliability in Normal mode.
+### v3.7.2 (Current)
+- **Fix PDF Split Loop**: Resolved a logic bug in `splitLargePdf` that could cause an infinite loop when processing specific PDF structures over 20MB, improving splitting stability.
+
+### v3.7.1
 
 ### v3.7.0
 
