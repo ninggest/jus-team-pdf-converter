@@ -12,6 +12,45 @@ import type {
     MistralBatchJob,
 } from "../types";
 
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+async function fetchWithRetry(
+    url: string,
+    options: RequestInit,
+    retries = MAX_RETRIES
+): Promise<Response> {
+    let lastError: Error | null = null;
+
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url, options);
+
+            // Retry on 5xx server errors or 429 rate limits
+            if (!response.ok && (response.status >= 500 || response.status === 429)) {
+                const errorText = await response.text();
+                throw new Error(`Mistral API error ${response.status}: ${errorText}`);
+            }
+
+            // If success (2xx) or client error (4xx) that is not 429, return immediately
+            return response;
+
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            console.warn(`Mistral fetch attempt ${i + 1} failed: ${lastError.message}`);
+
+            // If it's the last attempt, don't wait
+            if (i < retries - 1) {
+                // Exponential backoff
+                const delay = RETRY_DELAY * Math.pow(2, i);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+
+    throw lastError || new Error("Mistral fetch failed after retries");
+}
+
 export async function uploadFileToMistral(
     pdfData: ArrayBuffer,
     filename: string,
@@ -23,7 +62,7 @@ export async function uploadFileToMistral(
     formData.append("file", blob, filename);
     formData.append("purpose", purpose);
 
-    const response = await fetch(MISTRAL_FILES_ENDPOINT, {
+    const response = await fetchWithRetry(MISTRAL_FILES_ENDPOINT, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${apiKey}`,
@@ -40,7 +79,7 @@ export async function uploadFileToMistral(
 }
 
 export async function getSignedUrl(fileId: string, apiKey: string): Promise<string> {
-    const response = await fetch(`${MISTRAL_FILES_ENDPOINT}/${fileId}/url`, {
+    const response = await fetchWithRetry(`${MISTRAL_FILES_ENDPOINT}/${fileId}/url`, {
         method: "GET",
         headers: {
             Authorization: `Bearer ${apiKey}`,
@@ -82,7 +121,7 @@ export async function callMistralOCRWithUrl(
         include_image_base64: false,
     };
 
-    const response = await fetch(MISTRAL_OCR_ENDPOINT, {
+    const response = await fetchWithRetry(MISTRAL_OCR_ENDPOINT, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -132,7 +171,7 @@ export async function createMistralBatchJob(
         },
     }));
 
-    const response = await fetch(MISTRAL_BATCH_ENDPOINT, {
+    const response = await fetchWithRetry(MISTRAL_BATCH_ENDPOINT, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -157,7 +196,7 @@ export async function getMistralBatchJobStatus(
     batchId: string,
     apiKey: string
 ): Promise<MistralBatchJob> {
-    const response = await fetch(`${MISTRAL_BATCH_ENDPOINT}/${batchId}`, {
+    const response = await fetchWithRetry(`${MISTRAL_BATCH_ENDPOINT}/${batchId}`, {
         method: "GET",
         headers: {
             Authorization: `Bearer ${apiKey}`,
@@ -175,7 +214,7 @@ export async function downloadBatchResults(
     outputFileId: string,
     apiKey: string
 ): Promise<string> {
-    const response = await fetch(`${MISTRAL_FILES_ENDPOINT}/${outputFileId}/content`, {
+    const response = await fetchWithRetry(`${MISTRAL_FILES_ENDPOINT}/${outputFileId}/content`, {
         method: "GET",
         headers: {
             Authorization: `Bearer ${apiKey}`,
