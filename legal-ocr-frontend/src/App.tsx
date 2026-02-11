@@ -26,6 +26,7 @@ import { getJobHistory, saveJobToHistory } from "./lib/historyManager";
 import { ReleaseNotesModal } from "./components/ReleaseNotesModal";
 import { CURRENT_VERSION } from "./lib/releaseNotes";
 import type { MergeItem } from "./types";
+import { RedactionTool } from "./components/RedactionTool";
 
 // Backend Worker URL
 const WORKER_URL = import.meta.env.VITE_WORKER_URL || "http://localhost:8787";
@@ -51,6 +52,9 @@ function App() {
 
   // Release Notes State
   const [showReleaseNotes, setShowReleaseNotes] = useState(false);
+
+  // Redaction Tool State
+  const [redactingFile, setRedactingFile] = useState<{ fileName: string; markdown: string } | null>(null);
 
   // Check for version update on mount
   useEffect(() => {
@@ -261,6 +265,10 @@ function App() {
     setMergeQueue([]);
   }, []);
 
+  const handleRedact = useCallback((fileName: string, markdown: string) => {
+    setRedactingFile({ fileName, markdown });
+  }, []);
+
   const handleDownloadAllAsZip = async () => {
     const completedFiles = fileQueue.filter(
       (f) => f.status === "completed" && f.markdown
@@ -363,6 +371,7 @@ function App() {
                 onPreview={handleBatchPreview}
                 onToggleMergeItem={handleToggleMergeItem}
                 selectedMergeIds={mergeQueue.map(i => i.id)}
+                onRedact={handleRedact}
               />
             ))}
           </div>
@@ -424,6 +433,7 @@ function App() {
               onRemove={handleRemoveFile}
               onToggleMergeItem={handleToggleMergeItem}
               selectedMergeIds={mergeQueue.map(i => i.id)}
+              onRedact={(fileName: string, markdown: string) => handleRedact(fileName, markdown)}
             />
           </>
         )}
@@ -480,6 +490,12 @@ function App() {
         fileName={previewFile?.file.name || ""}
         markdown={previewFile?.markdown || ""}
         file={previewFile?.file}
+        onRedact={(markdown: string) => {
+          if (previewFile) {
+            handleRedact(previewFile.file.name, markdown);
+            setPreviewFile(null);
+          }
+        }}
       />
 
       {/* Preview Modal for batch mode */}
@@ -488,6 +504,12 @@ function App() {
         onClose={() => setPreviewData(null)}
         fileName={previewData?.fileName || ""}
         markdown={previewData?.markdown || ""}
+        onRedact={(markdown: string) => {
+          if (previewData) {
+            handleRedact(previewData.fileName, markdown);
+            setPreviewData(null);
+          }
+        }}
       />
 
       {/* Merge Queue Panel */}
@@ -503,6 +525,15 @@ function App() {
         onClose={handleCloseReleaseNotes}
         currentVersion={CURRENT_VERSION}
       />
+
+      {/* Redaction Tool Overlay */}
+      {redactingFile && (
+        <RedactionTool
+          initialText={redactingFile.markdown}
+          fileName={redactingFile.fileName}
+          onClose={() => setRedactingFile(null)}
+        />
+      )}
     </div>
   );
 }

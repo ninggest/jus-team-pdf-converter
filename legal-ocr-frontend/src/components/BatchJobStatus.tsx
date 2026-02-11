@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Loader2, CheckCircle2, XCircle, Clock, Download, Eye } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, Clock, Download, Eye, Shield } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import type { BatchJob, BatchResult } from "../lib/batchApi";
@@ -14,6 +14,7 @@ interface BatchJobStatusProps {
     onPreview?: (fileName: string, markdown: string) => void;
     onToggleMergeItem?: (item: import("../types").MergeItem) => void;
     selectedMergeIds?: string[];
+    onRedact?: (fileName: string, markdown: string) => void;
 }
 
 export function BatchJobStatus({
@@ -25,6 +26,7 @@ export function BatchJobStatus({
     onPreview,
     onToggleMergeItem,
     selectedMergeIds = [],
+    onRedact,
 }: BatchJobStatusProps) {
     const [job, setJob] = useState<BatchJob>(initialJob);
     const [results, setResults] = useState<BatchResult[] | null>(null);
@@ -183,6 +185,16 @@ export function BatchJobStatus({
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </Button>
+                                            {onRedact && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => onRedact(result.file_name, result.markdown)}
+                                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                >
+                                                    <Shield className="h-4 w-4" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 variant="ghost"
                                                 size="sm"

@@ -6,6 +6,7 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 🌟 Core Features
 
+- **Legal Document Redaction**: Integrated a powerful interactive redaction tool to automatically identify and mask sensitive information (Names, IDs, Phones, etc.). Supports category-based management and generates both redacted documents and comparison reports.
 - **Side-by-Side Proofreading & Editing**: Split-screen view to compare original PDF with Markdown, supporting direct edits and real-time synchronization.
 - **Smart Document Navigation**: Auto-generated Table of Contents (TOC) for quick navigation through complex legal documents.
 - **Legal Document Optimization**: Deeply optimized for legal agreements, judgments, and other documents. Automatically identifies and cleans headers, footers, and page numbers to maintain body text continuity.
@@ -17,7 +18,12 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v4.0.0 (Current)
+### v5.0.0 (Current)
+- **Legal Document Redaction**: Introduced a comprehensive redaction suite. Users can now identify 15+ types of sensitive information (names, IDs, banks, etc.) and apply masking with a professional interactive UI.
+- **Redaction Comparison Report**: Automatically generates a secondary Markdown report detailing what was redacted, providing a clear audit trail for legal compliance.
+- **Interactive Redaction UI**: A dedicated full-screen tool with category filtering, batch selection, and live redaction preview.
+
+### v4.0.0
 - **Side-by-Side Proofreading**: Introduced a new split-screen view allowing users to compare the original PDF and the OCR result simultaneously.
 - **Document Navigation**: Added an auto-generated Table of Contents (TOC) sidebar for quick navigation through long legal documents.
 - **Editable Markdown**: Users can now directly edit the OCR result in the preview window, with changes reflecting in the final download.

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
-import { X, Eye, Code, Copy, Download, Check, Columns, FileText, List } from "lucide-react";
+import { X, Eye, Code, Copy, Download, Check, Columns, FileText, List, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import { copyToClipboard, downloadAsFile } from "../lib/utils";
 
@@ -12,6 +12,7 @@ interface MarkdownPreviewModalProps {
     fileName: string;
     markdown: string;
     file?: File; // Optional original file for side-by-side view
+    onRedact?: (content: string) => void; // Optional redaction function
 }
 
 interface TocItem {
@@ -26,6 +27,7 @@ export function MarkdownPreviewModal({
     fileName,
     markdown: initialMarkdown,
     file,
+    onRedact,
 }: MarkdownPreviewModalProps) {
     const [content, setContent] = useState(initialMarkdown);
     const [viewMode, setViewMode] = useState<"preview" | "edit">("preview");
@@ -67,14 +69,12 @@ export function MarkdownPreviewModal({
                 const level = match[1].length;
                 const text = match[2].trim();
 
-                // Simple slug generation matching rehype-slug default behavior
                 let slug = text
                     .toLowerCase()
                     .replace(/[^\w\s-]/g, '') // Remove non-word chars
                     .replace(/\s+/g, '-');    // Replace spaces with dashes
 
-                // Handle duplicate slugs
-                if (slugCounts[slug]) {
+                if (slugCounts[slug] !== undefined) {
                     slugCounts[slug]++;
                     slug = `${slug}-${slugCounts[slug]}`;
                 } else {
@@ -111,7 +111,7 @@ export function MarkdownPreviewModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white w-full h-full max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+            <div className="bg-white w-full h-full max-w-[95vw] max-h-[95vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fade-in text-left">
 
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50 flex-shrink-0">
@@ -177,6 +177,12 @@ export function MarkdownPreviewModal({
                         <span className="text-xs text-gray-500 mr-2">
                             {content.length} 字符
                         </span>
+                        {onRedact && (
+                            <Button variant="outline" size="sm" onClick={() => onRedact(content)} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                                <Shield className="h-4 w-4 mr-1" />
+                                脱敏
+                            </Button>
+                        )}
                         <Button variant="outline" size="sm" onClick={handleCopy}>
                             {copied ? (
                                 <>
@@ -203,9 +209,8 @@ export function MarkdownPreviewModal({
                     </div>
                 </div>
 
-                {/* Main Layout Grid */}
+                {/* Main Body */}
                 <div className="flex-1 flex overflow-hidden">
-
                     {/* Left Pane: PDF Viewer */}
                     {showPdf && pdfUrl && (
                         <div className="w-1/2 border-r border-gray-200 bg-gray-100 flex flex-col">
@@ -221,7 +226,7 @@ export function MarkdownPreviewModal({
                         </div>
                     )}
 
-                    {/* Right Pane: Markdown Editor/Preview */}
+                    {/* Right Pane: Markdown Viewer/Editor */}
                     <div className={`flex-1 flex flex-col relative ${showPdf ? 'w-1/2' : 'w-full'}`}>
                         {/* TOC Sidebar Overlay */}
                         {showToc && (

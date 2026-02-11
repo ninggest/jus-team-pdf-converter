@@ -1,4 +1,4 @@
-import { Eye, Download, Loader2, AlertCircle, CheckCircle, Clock, X } from "lucide-react";
+import { Eye, Download, Loader2, AlertCircle, CheckCircle, Clock, X, Shield } from "lucide-react";
 import { Button } from "./ui/button";
 import type { FileItem } from "../lib/batchProcessor";
 import { formatFileSize, downloadAsFile } from "../lib/utils";
@@ -9,6 +9,7 @@ interface FileQueueListProps {
     onRemove: (id: string) => void;
     onToggleMergeItem?: (item: import("../types").MergeItem) => void;
     selectedMergeIds?: string[];
+    onRedact?: (fileName: string, markdown: string) => void;
 }
 
 function StatusBadge({ status }: { status: FileItem["status"] }) {
@@ -63,7 +64,8 @@ export function FileQueueList({
     onPreview,
     onRemove,
     onToggleMergeItem,
-    selectedMergeIds = []
+    selectedMergeIds = [],
+    onRedact,
 }: FileQueueListProps) {
     if (files.length === 0) {
         return null;
@@ -146,6 +148,17 @@ export function FileQueueList({
                                         >
                                             <Eye className="h-4 w-4" />
                                         </Button>
+                                        {onRedact && file.markdown && (
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => onRedact(file.file.name, file.markdown!)}
+                                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                title="Redact"
+                                            >
+                                                <Shield className="h-4 w-4" />
+                                            </Button>
+                                        )}
                                         <Button
                                             variant="ghost"
                                             size="icon"

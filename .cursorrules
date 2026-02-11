@@ -21,6 +21,7 @@
     - Frontend Footer display
     - Backend `package.json`
     - Backend Health Check API version string
+- **Release Notes Synchronization**: Whenever the version is updated, the assistant MUST synchronize ALL historical update logs from `README.md`/`README_zh.md` into the frontend `releaseNotes.ts` file. This ensures the "What's New" popup correctly displays the complete evolution of the project. Note: Display dates should be omitted from the popup UI.
 - **Bilingual Documentation**: Update both `README.md` (English) and `README_zh.md` (Chinese) for every significant update. DO NOT delete historical version logs.
 
 ## 5. Security & Privacy

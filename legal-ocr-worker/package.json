@@ -1,6 +1,6 @@
 {
   "name": "legal-ocr-worker",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Legal Document PDF to Markdown Converter using Mistral OCR API",
   "main": "src/index.ts",
   "scripts": {
