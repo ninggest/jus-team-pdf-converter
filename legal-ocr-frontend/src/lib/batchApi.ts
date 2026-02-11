@@ -45,7 +45,8 @@ export async function createBatchJob(
     apiKey: string,
     workerUrl: string,
     accessCode: string,
-    onProgress?: (fileIndex: number, progress: number) => void
+    onProgress?: (fileIndex: number, progress: number) => void,
+    refineMode = false
 ): Promise<BatchJob> {
 
     // 1. Upload all files to Mistral in parallel
@@ -73,7 +74,7 @@ export async function createBatchJob(
             Authorization: `Bearer ${apiKey}`,
             "X-Access-Code": accessCode,
         },
-        body: JSON.stringify({ files: uploadedFiles }),
+        body: JSON.stringify({ files: uploadedFiles, refine_mode: refineMode }),
     });
 
     if (!response.ok) {

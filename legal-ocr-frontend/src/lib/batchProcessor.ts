@@ -28,7 +28,8 @@ async function processFile(
     file: File,
     apiKey: string,
     workerUrl: string,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
+    refineMode = false
 ): Promise<string> {
     // 1. Upload directly to Mistral (Bypasses Worker 50MB limit)
     let fileId: string;
@@ -39,7 +40,12 @@ async function processFile(
     }
 
     // 2. Call Worker with Reference ID
-    const response = await fetch(workerUrl, {
+    const url = new URL(workerUrl);
+    if (refineMode) {
+        url.searchParams.set("refine_mode", "true");
+    }
+
+    const response = await fetch(url.toString(), {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -80,7 +86,8 @@ export async function processFilesSequentially(
     apiKey: string,
     workerUrl: string,
     onUpdate: FileUpdateCallback,
-    shouldStop: () => boolean
+    shouldStop: () => boolean,
+    refineMode = false
 ): Promise<void> {
     for (const fileItem of files) {
         // Check if we should stop processing
@@ -101,7 +108,8 @@ export async function processFilesSequentially(
                 fileItem.file,
                 apiKey,
                 workerUrl,
-                (progress) => onUpdate(fileItem.id, { uploadProgress: progress })
+                (progress) => onUpdate(fileItem.id, { uploadProgress: progress }),
+                refineMode
             );
             onUpdate(fileItem.id, { status: "completed", markdown, uploadProgress: 100 });
         } catch (error) {

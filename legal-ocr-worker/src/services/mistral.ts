@@ -239,11 +239,80 @@ export async function downloadBatchResults(
 
 // Processing Helpers
 
+export function cleanMarkdown(markdown: string): string {
+    let text = markdown;
+    text = text.replace(/\r\n/g, "\n");
+
+    const parts = text.split(/(```[\s\S]*?```)/g);
+
+    text = parts.map(part => {
+        if (part.startsWith("```")) return part;
+
+        const lines = part.split("\n");
+        const mergedLines: string[] = [];
+        let buffer = "";
+
+        for (let i = 0; i < lines.length; i++) {
+            // Trim end (preserve leading indentation which might be significant for nested lists, though we handle lists as special)
+            // Actually, if we merge, we usually want to strip leading space of the continuation line.
+            const line = lines[i].trimEnd();
+
+            // Handle empty lines (Paragraph breaks)
+            if (line.trim().length === 0) {
+                if (buffer) {
+                    mergedLines.push(buffer);
+                    buffer = "";
+                }
+                mergedLines.push(""); // Preserve the empty line
+                continue;
+            }
+
+            // Check if this line is special and should NOT be merged into
+            // (Header, List Item, Table Row, Blockquote, Image)
+            const trimmed = line.trim();
+            const isSpecial =
+                trimmed.startsWith("#") ||
+                trimmed.startsWith("- ") ||
+                trimmed.startsWith("* ") ||
+                /^\d+\./.test(trimmed) ||
+                trimmed.startsWith("|") ||
+                trimmed.startsWith(">") ||
+                trimmed.startsWith("![");
+
+            if (isSpecial) {
+                // If we have a pending paragraph buffer, flush it first
+                if (buffer) {
+                    mergedLines.push(buffer);
+                    buffer = "";
+                }
+                // Push the special line as-is
+                mergedLines.push(line);
+            } else {
+                // Regular text line. Merge into buffer.
+                if (buffer) {
+                    // When merging a continuation line, we add a space and strip its leading whitespace
+                    buffer += " " + line.trim();
+                } else {
+                    // Start a new paragraph buffer, preserving original indentation of the first line
+                    buffer = line;
+                }
+            }
+        }
+        // Flush remaining buffer
+        if (buffer) mergedLines.push(buffer);
+
+        return mergedLines.join("\n");
+    }).join("");
+
+    // Ensure exactly one empty line between paragraphs (max 2 consecutive newlines)
+    return text.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/**
+ * @deprecated Use cleanMarkdown instead
+ */
 export function cleanLegalDocumentMarkdown(markdown: string): string {
-    let cleaned = markdown;
-    cleaned = cleaned.replace(/\n{4,}/g, "\n\n\n");
-    cleaned = cleaned.trim();
-    return cleaned;
+    return cleanMarkdown(markdown);
 }
 
 export function processOCRToMarkdown(ocrResponse: MistralOCRResponse): string {
@@ -251,14 +320,18 @@ export function processOCRToMarkdown(ocrResponse: MistralOCRResponse): string {
         return "";
     }
 
+    // Sort pages by index to ensure correct order
     const sortedPages = [...ocrResponse.pages].sort((a, b) => a.index - b.index);
 
     const markdownParts = sortedPages
         .map((page) => page.markdown)
         .filter((md) => md && md.trim().length > 0);
 
+    // Join pages with double newline to prevent accidental cross-page merging
     let combinedMarkdown = markdownParts.join("\n\n");
-    combinedMarkdown = cleanLegalDocumentMarkdown(combinedMarkdown);
+    combinedMarkdown = cleanMarkdown(combinedMarkdown);
 
     return combinedMarkdown;
 }
+
+

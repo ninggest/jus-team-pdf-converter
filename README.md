@@ -13,7 +13,13 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v3.0.0 (Current)
+### v3.2.0 (Current)
+- **Dual Engine Architecture**: Integrated Mistral's LLM (`ministral-3b-2512`) alongside the core OCR engine for high-fidelity post-processing.
+- **Smart Refinement Toggle**: Added a user-facing "Dual Engine Polish" switch to optimize formatting and generate image descriptions.
+- **Contextual Image Recognition**: The LLM automatically identifies legal elements like signatures, seals, and ID cards based on surrounding text, replacing generic placeholders with meaningful tags like `![Signature/Seal]`.
+- **Advanced Formatting**: Automatically merges broken paragraphs, removes repetitive headers/footers, and standardizes document spacing.
+
+### v3.0.0
 - **Real-time Upload Progress**: Integrated a visual progress bar using `XMLHttpRequest` to show live feedback during direct uploads to Mistral AI.
 - **Queue Management**: Added the ability for users to remove individual files from the queue or clear tasks before processing begins.
 - **Job History Persistence**: Implemented local history storage keyed by **Access Code**, allowing users to retrieve recent tasks even after page refreshes or device switching.
