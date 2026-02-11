@@ -2,7 +2,13 @@ import { ALLOWED_ORIGINS } from "../config";
 
 export function getCORSHeaders(request: Request): Record<string, string> {
     const origin = request.headers.get("Origin") || "";
-    const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+    let allowedOrigin = ALLOWED_ORIGINS[0];
+
+    if (ALLOWED_ORIGINS.includes(origin)) {
+        allowedOrigin = origin;
+    } else if (origin.endsWith(".jus-team-pdf-converter.pages.dev") || origin.endsWith(".legal-ocr-frontend.pages.dev")) {
+        allowedOrigin = origin;
+    }
 
     return {
         "Access-Control-Allow-Origin": allowedOrigin,

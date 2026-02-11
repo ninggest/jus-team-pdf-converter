@@ -25,3 +25,11 @@
 
 ## 5. Security & Privacy
 - **Mistral API Key**: Must only be stored in browser `LocalStorage`. It is passed via encrypted headers to the Worker. Never log or permanently store API Keys on the backend/server side.
+
+## 6. Deployment & Environment Strategy
+- **Project Identifiers**:
+    - **Frontend (Pages)**: `jus-team-pdf-converter`
+    - **Backend (Worker)**: `legal-ocr-worker`
+- **Preview First Workflow**: All code optimizations, feature additions, or bug fixes MUST be deployed to the **Preview Environment** first for verification. 
+- **Production Gate**: Do NOT deploy to the Production environment (main/master branch) without explicit verification and approval from the user.
+    - Frontend Preview: `wrangler pages deploy dist --project-name jus-team-pdf-converter --branch preview`

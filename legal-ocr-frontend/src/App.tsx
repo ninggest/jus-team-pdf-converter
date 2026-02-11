@@ -23,6 +23,8 @@ import {
 import { createBatchJob, listBatchJobs, type BatchJob, type BatchResult } from "./lib/batchApi";
 import { splitLargePdf } from "./lib/pdfUtils";
 import { getJobHistory, saveJobToHistory } from "./lib/historyManager";
+import { ReleaseNotesModal } from "./components/ReleaseNotesModal";
+import { CURRENT_VERSION } from "./lib/releaseNotes";
 import type { MergeItem } from "./types";
 
 // Backend Worker URL
@@ -46,6 +48,26 @@ function App() {
 
   // Batch Sort & Merge Download State
   const [mergeQueue, setMergeQueue] = useState<MergeItem[]>([]);
+
+  // Release Notes State
+  const [showReleaseNotes, setShowReleaseNotes] = useState(false);
+
+  // Check for version update on mount
+  useEffect(() => {
+    const lastSeenVersion = localStorage.getItem("last_seen_version");
+    if (!lastSeenVersion || lastSeenVersion !== CURRENT_VERSION) {
+      // Small delay to ensure smooth transition on load
+      const timer = setTimeout(() => {
+        setShowReleaseNotes(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleCloseReleaseNotes = () => {
+    setShowReleaseNotes(false);
+    localStorage.setItem("last_seen_version", CURRENT_VERSION);
+  };
 
   // Save access code to localStorage
   useEffect(() => {
@@ -457,6 +479,7 @@ function App() {
         onClose={() => setPreviewFile(null)}
         fileName={previewFile?.file.name || ""}
         markdown={previewFile?.markdown || ""}
+        file={previewFile?.file}
       />
 
       {/* Preview Modal for batch mode */}
@@ -473,6 +496,12 @@ function App() {
         onReorder={handleReorderMergeQueue}
         onClear={handleClearMergeQueue}
         onRemoveItem={(id) => handleToggleMergeItem(mergeQueue.find(i => i.id === id)!)}
+      />
+      {/* Release Notes Modal */}
+      <ReleaseNotesModal
+        isOpen={showReleaseNotes}
+        onClose={handleCloseReleaseNotes}
+        currentVersion={CURRENT_VERSION}
       />
     </div>
   );

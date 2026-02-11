@@ -31,7 +31,7 @@ export default {
                 {
                     status: "ok",
                     service: "Legal Document OCR API",
-                    version: "3.8.0",
+                    version: "4.0.0",
                     modes: {
                         standard: {
                             endpoint: "POST /",

@@ -6,6 +6,8 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 🌟 Core Features
 
+- **Side-by-Side Proofreading & Editing**: Split-screen view to compare original PDF with Markdown, supporting direct edits and real-time synchronization.
+- **Smart Document Navigation**: Auto-generated Table of Contents (TOC) for quick navigation through complex legal documents.
 - **Legal Document Optimization**: Deeply optimized for legal agreements, judgments, and other documents. Automatically identifies and cleans headers, footers, and page numbers to maintain body text continuity.
 - **Smart Refinement (Dual Engine)**: Utilizes Mistral LLMs to polish OCR results, merge incorrectly split paragraphs, and automatically identify legal elements (signatures, seals) to add meaningful image descriptions.
 - **Batch Sort & Merge**: Combine multiple results into a single document with custom ordering and automatic **code block stripping**, processed entirely client-side.
@@ -15,7 +17,13 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 
 ## 📍 Version History
 
-### v3.8.0 (Current)
+### v4.0.0 (Current)
+- **Side-by-Side Proofreading**: Introduced a new split-screen view allowing users to compare the original PDF and the OCR result simultaneously.
+- **Document Navigation**: Added an auto-generated Table of Contents (TOC) sidebar for quick navigation through long legal documents.
+- **Editable Markdown**: Users can now directly edit the OCR result in the preview window, with changes reflecting in the final download.
+- **Enhanced Table Support**: Fixed table rendering issues by integrating `remark-gfm`.
+
+### v3.8.0
 - **Pure OCR Mode**: Removed the "Dual Engine Polish" feature to prioritize stability and speed. The system now focuses exclusively on high-fidelity OCR conversion.
 - **Backend Optimization**: Removed LLM-related services from the Cloudflare Worker, reducing bundle size and eliminating timeout risks associated with synchronous LLM processing.
 - **Threshold Restoration**: Restored the automatic PDF splitting threshold to **50MB**, allowing larger files to be processed in a single pass without fragmentation.
