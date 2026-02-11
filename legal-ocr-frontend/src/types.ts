@@ -70,3 +70,9 @@ export interface BatchJobRecord {
     updated_at: string;
     error?: string;
 }
+
+export interface MergeItem {
+    id: string;
+    fileName: string;
+    markdown: string;
+}

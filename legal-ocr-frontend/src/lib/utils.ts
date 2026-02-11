@@ -84,3 +84,25 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         }
     }
 }
+/**
+ * Strip Markdown code blocks (e.g., ```markdown ... ```) from a string
+ */
+export function stripMarkdownCodeBlocks(content: string): string {
+    const trimmed = content.trim();
+    if (trimmed.startsWith("```")) {
+        // Remove opening ```markdown or ```
+        const firstLineEnd = trimmed.indexOf("\n");
+        let start = trimmed.startsWith("```markdown") ? 11 : 3;
+
+        // If there's a newline after the opening backticks, skip it
+        if (firstLineEnd !== -1 && firstLineEnd < 15) {
+            start = firstLineEnd + 1;
+        }
+
+        // Remove closing ```
+        if (trimmed.endsWith("```")) {
+            return trimmed.substring(start, trimmed.length - 3).trim();
+        }
+    }
+    return content;
+}

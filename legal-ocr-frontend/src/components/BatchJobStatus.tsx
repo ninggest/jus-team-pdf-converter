@@ -12,6 +12,8 @@ interface BatchJobStatusProps {
     accessCode: string;
     onComplete?: (results: BatchResult[]) => void;
     onPreview?: (fileName: string, markdown: string) => void;
+    onToggleMergeItem?: (item: import("../types").MergeItem) => void;
+    selectedMergeIds?: string[];
 }
 
 export function BatchJobStatus({
@@ -21,6 +23,8 @@ export function BatchJobStatus({
     accessCode,
     onComplete,
     onPreview,
+    onToggleMergeItem,
+    selectedMergeIds = [],
 }: BatchJobStatusProps) {
     const [job, setJob] = useState<BatchJob>(initialJob);
     const [results, setResults] = useState<BatchResult[] | null>(null);
@@ -150,10 +154,24 @@ export function BatchJobStatus({
                                 key={index}
                                 className="flex items-center justify-between p-2 bg-gray-50 rounded"
                             >
-                                <span className="text-sm truncate flex-1">
-                                    {result.file_name}
-                                </span>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    {!result.error && onToggleMergeItem && (
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                            checked={selectedMergeIds.includes(`${job.job_id}-${index}`)}
+                                            onChange={() => onToggleMergeItem({
+                                                id: `${job.job_id}-${index}`,
+                                                fileName: result.file_name,
+                                                markdown: result.markdown
+                                            })}
+                                        />
+                                    )}
+                                    <span className="text-sm truncate flex-1 leading-none pt-0.5">
+                                        {result.file_name}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1 ml-2">
                                     {result.error ? (
                                         <span className="text-xs text-red-500">{result.error}</span>
                                     ) : (

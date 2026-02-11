@@ -7,13 +7,22 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 ## 🌟 Core Features
 
 - **Legal Document Optimization**: Deeply optimized for legal agreements, judgments, and other documents. Automatically identifies and cleans headers, footers, and page numbers to maintain body text continuity.
-- **Async Processing (v2.0)**: Background OCR processing with task persistence. Features an **Access Code** system to retrieve jobs across sessions/devices.
-- **High-Quality OCR**: Utilizes professional-grade OCR technology from Mistral AI to accurately extract complex structures such as tables and hierarchical headings.
-- **User-Centric Design**: Full localization, detailed mode explanations, and optimized data flow visibility.
+- **Smart Refinement (Dual Engine)**: Utilizes Mistral LLMs to polish OCR results, merge incorrectly split paragraphs, and automatically identify legal elements (signatures, seals) to add meaningful image descriptions.
+- **Batch Sort & Merge**: Combine multiple results into a single document with custom ordering and automatic **code block stripping**, processed entirely client-side.
+- **Async Processing**: Background OCR processing with task persistence. Features an **Access Code** system to retrieve jobs across sessions/devices.
+- **Privacy-First Design**: Full client-side API key management and direct-to-Mistral uploads for large files to ensure data security and performance.
 
 ## 📍 Version History
 
-### v3.2.0 (Current)
+### v3.5.1 (Current)
+- **Clean Markdown Export**: Automatically detect and strip ` ```markdown ` or ` ``` ` code block wrappers from OCR results. This applies to individual file downloads, copy-to-clipboard actions, and merged documents, ensuring raw, ready-to-use Markdown.
+
+### v3.5.0
+- **Batch Sort & Merge Download**: Introduced a sophisticated client-side merging system. Users can select multiple completed tasks, manually reorder them in a floating queue, and merge them into a single file with `---` separators.
+- **Improved UI Architecture**: Modularized selection logic across Normal and Async modes, allowing cross-job file selection for merging.
+- **Stability Polish**: Enhanced state management for the persistent merge queue.
+
+### v3.2.0
 - **Dual Engine Architecture**: Integrated Mistral's LLM (`ministral-3b-2512`) alongside the core OCR engine for high-fidelity post-processing.
 - **Smart Refinement Toggle**: Added a user-facing "Dual Engine Polish" switch to optimize formatting and generate image descriptions.
 - **Contextual Image Recognition**: The LLM automatically identifies legal elements like signatures, seals, and ID cards based on surrounding text, replacing generic placeholders with meaningful tags like `![Signature/Seal]`.

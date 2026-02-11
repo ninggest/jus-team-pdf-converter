@@ -12,6 +12,7 @@ import { MarkdownPreviewModal } from "./components/MarkdownPreviewModal";
 import { ProcessingModeSelector, type ProcessingMode } from "./components/ProcessingModeSelector";
 import { BatchJobStatus } from "./components/BatchJobStatus";
 import { AccessCodeDisplay } from "./components/AccessCodeDisplay";
+import { MergeQueuePanel } from "./components/MergeQueuePanel";
 import { Button } from "./components/ui/button";
 import { Card, CardContent } from "./components/ui/card";
 import { Switch } from "./components/ui/switch";
@@ -22,6 +23,7 @@ import {
 } from "./lib/batchProcessor";
 import { createBatchJob, listBatchJobs, type BatchJob, type BatchResult } from "./lib/batchApi";
 import { getJobHistory, saveJobToHistory } from "./lib/historyManager";
+import type { MergeItem } from "./types";
 
 // Backend Worker URL
 const WORKER_URL = import.meta.env.VITE_WORKER_URL || "http://localhost:8787";
@@ -42,6 +44,9 @@ function App() {
   const [accessCode, setAccessCode] = useState(() => {
     return localStorage.getItem("batch_access_code") || Math.random().toString(36).substring(2, 8).toUpperCase();
   });
+
+  // Batch Sort & Merge Download State
+  const [mergeQueue, setMergeQueue] = useState<MergeItem[]>([]);
 
   // Save access code to localStorage
   useEffect(() => {
@@ -202,6 +207,25 @@ function App() {
     setPreviewData({ fileName, markdown });
   }, []);
 
+  const handleToggleMergeItem = useCallback((item: MergeItem) => {
+    setMergeQueue(prev => {
+      const exists = prev.find(i => i.id === item.id);
+      if (exists) {
+        return prev.filter(i => i.id !== item.id);
+      } else {
+        return [...prev, item];
+      }
+    });
+  }, []);
+
+  const handleReorderMergeQueue = useCallback((newQueue: MergeItem[]) => {
+    setMergeQueue(newQueue);
+  }, []);
+
+  const handleClearMergeQueue = useCallback(() => {
+    setMergeQueue([]);
+  }, []);
+
   const handleDownloadAllAsZip = async () => {
     const completedFiles = fileQueue.filter(
       (f) => f.status === "completed" && f.markdown
@@ -319,6 +343,8 @@ function App() {
                 accessCode={accessCode}
                 onComplete={handleBatchComplete}
                 onPreview={handleBatchPreview}
+                onToggleMergeItem={handleToggleMergeItem}
+                selectedMergeIds={mergeQueue.map(i => i.id)}
               />
             ))}
           </div>
@@ -378,6 +404,8 @@ function App() {
               files={fileQueue}
               onPreview={setPreviewFile}
               onRemove={handleRemoveFile}
+              onToggleMergeItem={handleToggleMergeItem}
+              selectedMergeIds={mergeQueue.map(i => i.id)}
             />
           </>
         )}
@@ -441,6 +469,14 @@ function App() {
         onClose={() => setPreviewData(null)}
         fileName={previewData?.fileName || ""}
         markdown={previewData?.markdown || ""}
+      />
+
+      {/* Merge Queue Panel */}
+      <MergeQueuePanel
+        items={mergeQueue}
+        onReorder={handleReorderMergeQueue}
+        onClear={handleClearMergeQueue}
+        onRemoveItem={(id) => handleToggleMergeItem(mergeQueue.find(i => i.id === id)!)}
       />
     </div>
   );

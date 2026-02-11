@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { cn, copyToClipboard, downloadAsFile, formatFileSize } from "../lib/utils";
+import { cn, copyToClipboard, downloadAsFile, formatFileSize, stripMarkdownCodeBlocks } from "../lib/utils";
 
 interface MarkdownViewerProps {
     markdown: string;
@@ -32,7 +32,8 @@ export function MarkdownViewer({
     const [showFileInfo, setShowFileInfo] = useState(true);
 
     const handleCopy = async () => {
-        const success = await copyToClipboard(markdown);
+        const cleanedMarkdown = stripMarkdownCodeBlocks(markdown);
+        const success = await copyToClipboard(cleanedMarkdown);
         if (success) {
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
@@ -42,7 +43,8 @@ export function MarkdownViewer({
     const handleDownload = () => {
         // Replace .pdf extension with .md
         const mdFileName = fileName.replace(/\.pdf$/i, ".md");
-        downloadAsFile(markdown, mdFileName);
+        const cleanedMarkdown = stripMarkdownCodeBlocks(markdown);
+        downloadAsFile(cleanedMarkdown, mdFileName);
     };
 
     const wordCount = markdown

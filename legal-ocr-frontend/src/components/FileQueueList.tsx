@@ -7,6 +7,8 @@ interface FileQueueListProps {
     files: FileItem[];
     onPreview: (file: FileItem) => void;
     onRemove: (id: string) => void;
+    onToggleMergeItem?: (item: import("../types").MergeItem) => void;
+    selectedMergeIds?: string[];
 }
 
 function StatusBadge({ status }: { status: FileItem["status"] }) {
@@ -56,7 +58,13 @@ function StatusBadge({ status }: { status: FileItem["status"] }) {
     );
 }
 
-export function FileQueueList({ files, onPreview, onRemove }: FileQueueListProps) {
+export function FileQueueList({
+    files,
+    onPreview,
+    onRemove,
+    onToggleMergeItem,
+    selectedMergeIds = []
+}: FileQueueListProps) {
     if (files.length === 0) {
         return null;
     }
@@ -82,6 +90,18 @@ export function FileQueueList({ files, onPreview, onRemove }: FileQueueListProps
                         className="px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
                     >
                         <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {file.status === "completed" && file.markdown && onToggleMergeItem && (
+                                <input
+                                    type="checkbox"
+                                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                    checked={selectedMergeIds.includes(file.id)}
+                                    onChange={() => onToggleMergeItem({
+                                        id: file.id,
+                                        fileName: file.file.name,
+                                        markdown: file.markdown!
+                                    })}
+                                />
+                            )}
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
                                     <p className="text-sm font-medium text-gray-900 truncate">
