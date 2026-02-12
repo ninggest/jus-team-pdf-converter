@@ -12,7 +12,7 @@ A specialized PDF-to-Markdown converter tailored for legal documents, designed t
 - **Legal Document Optimization**: Deeply optimized for legal agreements, judgments, and other documents. Automatically identifies and cleans headers, footers, and page numbers to maintain body text continuity.
 - **Batch Sort & Merge**: Combine multiple results into a single document with custom ordering and automatic **code block stripping**, processed entirely client-side.
 - **Async Processing**: Background OCR processing with task persistence. Features an **Access Code** system to retrieve jobs across sessions/devices.
-- **Large File Automatic Splitting**: Automatically splits PDF files exceeding 20MB into smaller parts in the frontend to ensure stability during synchronized processing.
+- **Large File Automatic Splitting**: Automatically splits PDF files exceeding 50MB into smaller parts in the frontend to ensure stability during synchronized processing.
 - **PWA Support**: Install the application on your desktop or mobile for a native-like experience.
 - **Privacy-First Design**: Full client-side API key management and direct-to-Mistral uploads for large files to ensure data security and performance.
 
